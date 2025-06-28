@@ -1,7 +1,10 @@
 ﻿var Socket: WebSocket;
-var MainElement: HTMLElement | null = document.getElementById("Main");
+var MainElement: HTMLElement | null = document.getElementById("main");
+var ContextMenuObject: ContextMenu | null = null;
+var ObjectEditorObject: ObjectEditor | null = null;
 
 function CreateWebSocket(): void {
+
     Socket = new WebSocket(`ws://${window.location.host}/`);
 
     Socket.addEventListener("open", (e: Event) => {
@@ -26,21 +29,54 @@ function SendWebSocketRequest(message: string): void {
 }
 
 function AddEvents(): void {
-    let text: HTMLTextAreaElement = document.getElementById("text") as HTMLTextAreaElement;
-
-    text.addEventListener("keyup", (e: KeyboardEvent) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            SendWebSocketRequest(text.value);
-        }
-    });
 
     document.addEventListener("contextmenu", (e: MouseEvent) => {
-        console.log("context menu");
-        e.preventDefault();
+        ShowContextMenu(e);
         return false;
+    });
+
+    MainElement?.addEventListener("pointerdown", (e: PointerEvent) => {
+        HideContextMenu(e);
+    });
+
+    let loginButton = document.getElementById("login");
+
+    loginButton?.addEventListener("click", (e: MouseEvent) => {
+        let usernameInput: HTMLInputElement = document.getElementById("username") as HTMLInputElement;
+        let passwordInput: HTMLInputElement = document.getElementById("password") as HTMLInputElement;
+
+        SendWebSocketRequest(`Login:${usernameInput.value},${passwordInput.value}`);
     });
 }
 
 CreateWebSocket();
 AddEvents();
+
+function ShowContextMenu(e: MouseEvent) {
+
+    e.preventDefault();
+
+    if (!ContextMenuObject) {
+        ContextMenuObject = new ContextMenu();
+    }
+
+    ContextMenuObject.Show(e.clientX, e.clientY);
+}
+
+function HideContextMenu(e: PointerEvent) {
+
+    if (!ContextMenuObject || e.button !== 0) {
+        return;
+    }
+
+    ContextMenuObject.Hide();
+}
+
+function ShowObjectEditor() {
+
+    if (!ObjectEditorObject) {
+        ObjectEditorObject = new ObjectEditor();
+    }
+
+    ObjectEditorObject.Show();
+}

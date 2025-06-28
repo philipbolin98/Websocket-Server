@@ -78,7 +78,6 @@ namespace Server {
         }
 
         private async Task ProcessHttpRequest(HttpListenerContext context) {
-
             switch (context.Request.HttpMethod) {
 
                 case WebRequestMethods.Http.Get:

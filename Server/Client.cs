@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic.ApplicationServices;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
@@ -9,6 +10,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.ComponentModel.Design.ObjectSelectorEditor;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using System.Windows.Forms;
 
 namespace Server {
     internal class Client {
@@ -39,7 +43,9 @@ namespace Server {
                         continue;
                     }
 
-                    await SendMessage($"Received message: {message}");
+                    string response = await GetResponse(message);
+
+                    await SendMessage(response);
 
                 } catch (Exception ex) {
                     Debug.Write(ex.Message);
@@ -47,6 +53,32 @@ namespace Server {
             }
 
             await CloseClient();
+        }
+
+        public async Task<string> GetResponse(string message) {
+
+            if (!message.Contains(':')) {
+                return "";
+            }
+
+            string[] messageParts = message.Split(":");
+            string[] parameters = messageParts[1].Split(",");
+
+            string functionName = messageParts[0];
+
+            switch (functionName) {
+                case "Login": {
+
+                    bool loginResult = await Database.ValidateLogin(parameters[0], parameters[1]);
+
+                    if (loginResult) {
+                        return "Successfully logged in!";
+                    } else {
+                        return "Invalid login credentials.";
+                    }
+                }
+            }
+            return "";
         }
 
         public async Task<string> ReceiveMessage() {
@@ -101,7 +133,7 @@ namespace Server {
                 await Socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
             }
 
-            Global.WebServer.Clients.Remove(Id);
+            Global.WebServer?.Clients.Remove(Id);
         }
     }
 }
