@@ -11,12 +11,12 @@ class ContextMenu {
 
     Show(x: number, y: number, options: ContextMenuOption[] = []) {
 
+        this.Element.style.left = `${x}px`;
+        this.Element.style.top = `${y}px`;
+
         if (this.Visibile) {
             return;
         }
-
-        this.Element.style.left = `${x}px`;
-        this.Element.style.top = `${y}px`;
 
         this.Element.replaceChildren();
 

@@ -1,4 +1,15 @@
-﻿html, body {
+﻿:root {
+    font-family: Inter, sans-serif;
+    font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
+}
+
+@supports (font-variation-settings: normal) {
+    :root {
+        font-family: InterVariable, sans-serif;
+    }
+}
+
+html, body {
     width: 100%;
     height: 100%;
 }
@@ -31,6 +42,10 @@
     flex-direction: column;
 }
 
+#objecteditor * {
+    user-select: none;
+}
+
 #objecteditor > .header {
     width: 100%;
     flex-shrink: 0;
@@ -39,11 +54,23 @@
     border-bottom: 1px solid black;
 }
 
+.spacer {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
 #objecteditor > .header > .closebutton {
-    right: 10px;
-    width: 10px;
-    height: 10px;
-    color: black;
+    width: 20px;
+    height: 100%;
+    flex-grow: 0;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+#objecteditor > .menu {
+    height: 50px;
+    border-bottom: 1px solid black;
 }
 
 #objecteditor > .body {
@@ -66,4 +93,55 @@
 #objecteditor > .body > .table {
     flex-shrink: 1;
     flex-grow: 1;
+}
+
+#objecteditor > .body > .tree {
+    overflow: scroll;
+}
+
+#objecteditor > .body > .tree * {
+    flex-shrink: 0;
+    flex-grow: 0;
+}
+
+.treenodecontainer {
+    height: 20px;
+}
+
+.treenode, .treenodeitem, .treenodechildcontainer {
+    width: 100%;
+}
+
+.tree {
+    flex-direction: column;
+}
+
+.treenode {
+    flex-direction: column;
+}
+
+.treenodechildcontainer {
+    flex-direction: column;
+}
+
+.treenodeexpandbuttoncontainer {
+    align-items: center;
+    justify-content: center;
+}
+
+.treenodeexpandbutton {
+    width: 60%;
+    height: 60%;
+    border: 1px solid black;
+    border-radius: 5px;
+    line-height: 1;
+    font-size: 16px;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#objecteditor .tree .treenode.selected > .treenodecontainer > .treenodename {
+    background-color: lightgray;
 }

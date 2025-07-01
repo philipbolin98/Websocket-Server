@@ -7,11 +7,11 @@ var ContextMenu = /** @class */ (function () {
     ContextMenu.prototype.Show = function (x, y, options) {
         var _this = this;
         if (options === void 0) { options = []; }
+        this.Element.style.left = "".concat(x, "px");
+        this.Element.style.top = "".concat(y, "px");
         if (this.Visibile) {
             return;
         }
-        this.Element.style.left = "".concat(x, "px");
-        this.Element.style.top = "".concat(y, "px");
         this.Element.replaceChildren();
         document.body.appendChild(this.Element);
         if (options.length === 0) { //Default context menu options

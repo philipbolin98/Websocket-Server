@@ -20,12 +20,12 @@ namespace Server {
                 using SqlConnection connection = new(ConnectionString);
                 using SqlCommand command = new(Query, connection);
 
-                connection.Open();
-
                 if (Paramaters != null) {
                     command.Parameters.AddRange(Paramaters);
                 }
 
+                connection.Open();
+                
                 object? result = await command.ExecuteScalarAsync();
                 return result;
 
