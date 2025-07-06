@@ -1,14 +1,15 @@
 ﻿var Socket: WebSocket;
 var MainElement: HTMLElement | null = document.getElementById("main");
 var ContextMenuObject: ContextMenu | null = null;
-var ObjectEditorObject: ObjectEditor | null = null;
+var ComponentEditor: Editor | null = null;
+var ObjectEditor: Editor | null = null;
 
 function CreateWebSocket(): void {
 
     Socket = new WebSocket(`ws://${window.location.host}/`);
 
     Socket.addEventListener("open", (e: Event) => {
-        console.log("open");
+        SendWebSocketRequest("GetComponents");
     });
 
     Socket.addEventListener("close", (e: CloseEvent) => {
@@ -16,7 +17,7 @@ function CreateWebSocket(): void {
     });
 
     Socket.addEventListener("message", (e: MessageEvent) => {
-        console.log(e.data);
+        HandleWebSocketResponse(e.data);
     });
 
     Socket.addEventListener("error", (e: Event) => {
@@ -24,8 +25,67 @@ function CreateWebSocket(): void {
     });
 }
 
-function SendWebSocketRequest(message: string): void {
+function SendWebSocketRequest(functionName: string, params: object[] = []): void {
+
+    let data = new SocketRequest(functionName, params);
+
+    let message: string = JSON.stringify(data);
+
     Socket.send(message);
+}
+
+function HandleWebSocketResponse(message: string) {
+
+    let response = JSON.parse(message) as SocketResponse<string>;
+
+    let result = response.Result;
+
+    if (!result.Success) {
+        console.error(result.Message);
+        return;
+    }
+
+    let functionName = response.FunctionName;
+    let data = result.Data;
+
+    ClientFunctionHandler[functionName](data);
+}
+
+class SocketRequest {
+
+    FunctionName: string;
+    Parameters: object[];
+
+    constructor(functionName: string, params: object[] = []) {
+        this.FunctionName = functionName;
+        this.Parameters = params;
+    }
+}
+
+class SocketResponse<T> {
+    FunctionName: string = "";
+    Result!: Result<T>;
+}
+
+class Result<T> {
+    Success: boolean = false;
+    Message: string = "";
+    Data?: T;
+}
+
+class ClientFunctionHandler {
+
+    static AddComponent(data: any) {
+
+        ComponentEditor?.Tree.AddNode(data);
+    }
+
+    static GetComponents(data: any[]) {
+
+        if (!ComponentEditor) {
+            ComponentEditor = new Editor("componenteditor", data);
+        }
+    }
 }
 
 function AddEvents(): void {
@@ -72,11 +132,20 @@ function HideContextMenu(e: PointerEvent) {
     ContextMenuObject.Hide();
 }
 
-function ShowObjectEditor() {
+function ShowComponentEditor() {
 
-    if (!ObjectEditorObject) {
-        ObjectEditorObject = new ObjectEditor();
+    if (!ComponentEditor) {
+        ComponentEditor = new Editor("componenteditor", []);
     }
 
-    ObjectEditorObject.Show();
+    ComponentEditor.Show();
+}
+
+function ShowObjectEditor() {
+
+    if (!ObjectEditor) {
+        ObjectEditor = new Editor("objecteditor", []);
+    }
+
+    ObjectEditor.Show();
 }

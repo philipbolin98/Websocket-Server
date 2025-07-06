@@ -24,8 +24,8 @@ html, body {
 }
 
 #contextmenu {
-    width: 100px;
-    height: 100px;
+    width: 200px;
+    height: 200px;
     position: absolute;
     border: 1px solid black;
 }
@@ -34,7 +34,7 @@ html, body {
     width: 100px;
 }
 
-#objecteditor {
+.editor {
     position: absolute;
     width: 500px;
     height: 500px;
@@ -42,11 +42,11 @@ html, body {
     flex-direction: column;
 }
 
-#objecteditor * {
+.editor * {
     user-select: none;
 }
 
-#objecteditor > .header {
+.editor > .header {
     width: 100%;
     flex-shrink: 0;
     flex-grow: 0;
@@ -59,7 +59,7 @@ html, body {
     flex-shrink: 1;
 }
 
-#objecteditor > .header > .closebutton {
+.editor > .header > .closebutton {
     width: 20px;
     height: 100%;
     flex-grow: 0;
@@ -68,21 +68,43 @@ html, body {
     justify-content: center;
 }
 
-#objecteditor > .menu {
+.editor > .menu {
     height: 50px;
     border-bottom: 1px solid black;
+    align-items: center;
 }
 
-#objecteditor > .body {
+.editor > .menu > .menubutton {
+    width: 40px;
+    height: 40px;
+    border: 1px solid black;
+    border-radius: 10px;
+    margin-left: 5px;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.editor > .menu > .menubutton:hover {
+    background-color: lightgrey;
+}
+
+.editor > .menu > .menubutton:active {
+    background-color: grey;
+}
+
+.editor > .body {
     flex-shrink: 1;
     flex-grow: 1;
+    overflow: scroll;
 }
 
-#objecteditor > .body > div {
+.editor > .body > div {
     height: 100%;
 }
 
-#objecteditor > .body > .resizer {
+.editor > .body > .resizer {
     flex-basis: 5px;
     flex-shrink: 0;
     flex-grow: 0;
@@ -90,16 +112,16 @@ html, body {
     border-right: 1px solid black;
 }
 
-#objecteditor > .body > .table {
+.editor > .body > .table {
     flex-shrink: 1;
     flex-grow: 1;
 }
 
-#objecteditor > .body > .tree {
+.editor > .body > .tree {
     overflow: scroll;
 }
 
-#objecteditor > .body > .tree * {
+.editor > .body > .tree * {
     flex-shrink: 0;
     flex-grow: 0;
 }
@@ -142,6 +164,6 @@ html, body {
     cursor: pointer;
 }
 
-#objecteditor .tree .treenode.selected > .treenodecontainer > .treenodename {
+.editor .tree .treenode.selected > .treenodecontainer > .treenodename {
     background-color: lightgray;
 }

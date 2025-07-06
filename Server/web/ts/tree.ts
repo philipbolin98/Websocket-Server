@@ -6,6 +6,8 @@ class Tree {
 
     SelectedNode: TreeNode | null = null;
 
+    NodesByID: Map<string, TreeNode> | null = null;
+
     constructor(data: any[]) {
 
         this.Element = document.createElement("div");
@@ -15,6 +17,40 @@ class Tree {
         for (let node of data) {
             this.Data.push(new TreeNode(this, node, this.Element, 0));
         }
+
+        this.AddEvents();
+    }
+
+    AddEvents() {
+        this.Element.addEventListener("keydown", (e: KeyboardEvent) => {
+
+            if (!this.SelectedNode) {
+                return;
+            }
+
+            switch (e.key) {
+                case "ArrowDown": {
+                    let nextSibling = this.SelectedNode.GetNextSibling();
+                    if (nextSibling) {
+                        nextSibling.Select();
+                    }
+                    break;
+                }
+                case "ArrowUp": {
+                    let prevSibling = this.SelectedNode.GetPrevSibling();
+                    if (prevSibling) {
+                        prevSibling.Select();
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        });
+    }
+
+    AddNode(node: any) {
+        this.Data.push(new TreeNode(this, node, this.Element, 0));
     }
 }
 
@@ -22,8 +58,8 @@ class TreeNode {
 
     static BranchWidth: number = 20;
 
+    ID: number;
     Tree: Tree;
-
     Element: HTMLElement;
     NodeContainer: HTMLElement;
     SpacerElement: HTMLElement;
@@ -31,19 +67,15 @@ class TreeNode {
     ExpandButton: HTMLElement;
     ImageElement: HTMLElement;
     NameElement: HTMLElement;
-
     Name: string;
-
-    Image: string;
-
     Children: TreeNode[] = [];
     ChildContainer: HTMLElement;
-
     Depth: number;
     IsOpen: boolean = false;
 
     constructor(tree: Tree, data: any, parentElement: HTMLElement, depth: number) {
 
+        this.ID = data.ID;
         this.Tree = tree;
 
         this.Element = document.createElement("div");
@@ -63,11 +95,10 @@ class TreeNode {
         this.ExpandButton.classList.add("treenodeexpandbutton");
         this.ExpandButton.innerText = "+";
 
-        this.Image = data.image;
         this.ImageElement = document.createElement("div");
         this.ImageElement.classList.add("treenodeimage");
 
-        this.Name = data.name;
+        this.Name = data.Name;
         this.NameElement = document.createElement("span");
         this.NameElement.classList.add("treenodename");
         this.NameElement.innerText = this.Name;
@@ -85,10 +116,12 @@ class TreeNode {
         this.Depth = depth;
         this.SpacerElement.style.width = `${TreeNode.BranchWidth * depth}px`;
 
-        for (let childNode of data.children) {
-            this.Children.push(new TreeNode(tree, childNode, this.ChildContainer, depth + 1));
+        if (data.Children) {
+            for (let childNode of data.Children) {
+                this.Children.push(new TreeNode(tree, childNode, this.ChildContainer, depth + 1));
+            }
         }
-
+        
         if (this.Children.length > 0) {
             this.ExpandButtonContainer.appendChild(this.ExpandButton);
         }
@@ -157,5 +190,13 @@ class TreeNode {
 
         this.Element.classList.remove("selected");
         this.Tree.SelectedNode = null;
+    }
+
+    GetNextSibling(): TreeNode | null {
+        return null;
+    }
+
+    GetPrevSibling(): TreeNode | null {
+        return null;
     }
 }

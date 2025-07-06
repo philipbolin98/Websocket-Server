@@ -1,0 +1,18 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    /* Visit https://aka.ms/tsconfig to read more about this file */
+    "target": "es2020",
+    "lib": [ "es2020", "dom" ],
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "noLib": false,
+    "rootDir": "web/ts",
+    "outDir": "web/js"
+  },
+  "include": [ "web/ts" ]
+}

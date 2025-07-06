@@ -1,10 +1,11 @@
-class ObjectEditor {
+﻿class Editor {
 
     Element: HTMLElement;
 
     Header: HTMLElement;
     Menu: HTMLElement;
-    
+    AddButton: HTMLElement;
+
     CloseButton: HTMLElement;
 
     BodyElement: HTMLElement;
@@ -17,12 +18,11 @@ class ObjectEditor {
 
     Visible: boolean = false;
 
-    PointerMoveEvent: (e: PointerEvent) => void;
-
-    constructor() {
+    constructor(id: string, data: any[]) {
 
         this.Element = document.createElement("div")
-        this.Element.id = "objecteditor";
+        this.Element.classList.add("editor");
+        this.Element.id = id;
 
         this.Header = document.createElement("div");
         this.Header.classList.add("header");
@@ -40,66 +40,16 @@ class ObjectEditor {
         this.Menu = document.createElement("div");
         this.Menu.classList.add("menu");
 
+        this.AddButton = document.createElement("div");
+        this.AddButton.classList.add("menubutton");
+        this.AddButton.innerText = '+';
+        
+        this.Menu.appendChild(this.AddButton);
+
         this.BodyElement = document.createElement("div");
         this.BodyElement.classList.add("body");
 
-        let treeData = [
-            {
-                name: "Applications",
-                image: "",
-                children: [
-                    {
-                        name: "App1",
-                        image: "",
-                        children: []
-                    },
-                    {
-                        name: "App2",
-                        image: "",
-                        children: []
-                    }
-                ]
-            },
-            {
-                name: "Screens",
-                image: "",
-                children: [
-                    {
-                        name: "Screen1",
-                        image: "",
-                        children: [
-                            {
-                                name: "Button1",
-                                image: "",
-                                children: []
-                            },
-                            {
-                                name: "Label1",
-                                image: "",
-                                children: []
-                            },
-                            {
-                                name: "Button2",
-                                image: "",
-                                children: []
-                            },
-                        ]
-                    },
-                    {
-                        name: "Screen2",
-                        image: "",
-                        children: []
-                    }
-                ]
-            },
-            {
-                name: "Functions",
-                image: "",
-                children: []
-            }
-        ];
-        
-        this.Tree = new Tree(treeData);
+        this.Tree = new Tree(data);
 
         this.ResizerElement = document.createElement("div");
         this.ResizerElement.classList.add("resizer");
@@ -115,8 +65,8 @@ class ObjectEditor {
         this.Element.appendChild(this.Menu);
         this.Element.appendChild(this.BodyElement);
 
-        this.Element.style.left = "500px";
-        this.Element.style.top = "500px";
+        this.Element.style.left = "100px";
+        this.Element.style.top = "100px";
 
         this.AddEvents();
     }
@@ -156,16 +106,15 @@ class ObjectEditor {
             let dx = e.clientX - parseInt(this.Element.style.left);
             let dy = e.clientY - parseInt(this.Element.style.top);
 
-            document.addEventListener("pointermove", this.PointerMoveEvent = (e: PointerEvent) => {
+            let pointerMoveEvent = (e: PointerEvent) => {
                 this.Element.style.left = `${e.clientX - dx}px`;
                 this.Element.style.top = `${e.clientY - dy}px`;
-            });
+            }
+
+            document.addEventListener("pointermove", pointerMoveEvent);
 
             document.addEventListener("pointerup", (e) => {
-
-                document.removeEventListener("pointermove", this.PointerMoveEvent);
-                this.PointerMoveEvent = null;
-
+                document.removeEventListener("pointermove", pointerMoveEvent);
             }, { once: true });
         });
 
@@ -178,18 +127,21 @@ class ObjectEditor {
             let startX = e.clientX;
             let startLeft = parseInt(this.Tree.Element.style.width);
 
-            document.addEventListener("pointermove", this.PointerMoveEvent = (e: PointerEvent) => {
+            let pointerMoveEvent = (e: PointerEvent) => {
                 let width = startLeft + (e.clientX - startX);
                 width = Math.max(width, 0);
                 this.Tree.Element.style.width = `${width}px`;
-            });
+            }
+
+            document.addEventListener("pointermove", pointerMoveEvent);
 
             document.addEventListener("pointerup", (e) => {
-
-                document.removeEventListener("pointermove", this.PointerMoveEvent);
-                this.PointerMoveEvent = null;
-
+                document.removeEventListener("pointermove", pointerMoveEvent);
             }, { once: true });
+        });
+
+        this.AddButton.addEventListener("click", (e: MouseEvent) => {
+            SendWebSocketRequest("AddComponent");
         });
     }
 }

@@ -1,18 +1,9 @@
-﻿using Microsoft.VisualBasic.ApplicationServices;
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Diagnostics;
-using System.IO;
-using System.Net.Http;
+﻿using System.Diagnostics;
 using System.Net.WebSockets;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using static System.ComponentModel.Design.ObjectSelectorEditor;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
-using System.Windows.Forms;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
+using static Server.ClientFunctionHandlers;
 
 namespace Server {
     internal class Client {
@@ -45,6 +36,10 @@ namespace Server {
 
                     string response = await GetResponse(message);
 
+                    if (response == "") {
+                        continue;
+                    }
+
                     await SendMessage(response);
 
                 } catch (Exception ex) {
@@ -55,30 +50,24 @@ namespace Server {
             await CloseClient();
         }
 
-        public async Task<string> GetResponse(string message) {
+        public static async Task<string> GetResponse(string message) {
+            try {
 
-            if (!message.Contains(':')) {
+                var data = System.Text.Json.JsonSerializer.Deserialize<SocketRequest>(message);
+
+                if (data == null) {
+                    return "";
+                }
+
+                var ReturnValue = await FunctionRouter.DispatchAsync(data.FunctionName, data.Parameters);
+                SocketResponse response = new(data.FunctionName, ReturnValue);
+
+                return System.Text.Json.JsonSerializer.Serialize(response);
+
+            } catch (Exception ex) {
+                Debug.WriteLine(ex.Message);
                 return "";
             }
-
-            string[] messageParts = message.Split(":");
-            string[] parameters = messageParts[1].Split(",");
-
-            string functionName = messageParts[0];
-
-            switch (functionName) {
-                case "Login": {
-
-                    bool loginResult = await Database.ValidateLogin(parameters[0], parameters[1]);
-
-                    if (loginResult) {
-                        return "Successfully logged in!";
-                    } else {
-                        return "Invalid login credentials.";
-                    }
-                }
-            }
-            return "";
         }
 
         public async Task<string> ReceiveMessage() {
@@ -134,6 +123,21 @@ namespace Server {
             }
 
             Global.WebServer?.Clients.Remove(Id);
+        }
+    }
+
+    public class SocketRequest {
+        public string FunctionName { get; set; } = "";
+        public object[] Parameters { get; set; } = [];
+    }
+
+    public class SocketResponse {
+        public string FunctionName { get; set; }
+        public Result<object?> Result { get; set; }
+
+        public SocketResponse(string functionName, Result<object?> result) { 
+            this.FunctionName = functionName;
+            this.Result = result;
         }
     }
 }

@@ -1,20 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Data;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Server {
     public class Database {
 
         public static string ConnectionString = "Server=PHILIPPC\\SQLEXPRESS;Database=WebsocketServer;Trusted_Connection=True;TrustServerCertificate=True";
 
-        public static async Task<object?> RunQuery(string Query, SqlParameter[]? Paramaters = null) {
+        public static async Task<object?> ExecuteScalar(string Query, SqlParameter[]? Paramaters = null) {
             try {
 
                 using SqlConnection connection = new(ConnectionString);
@@ -35,22 +28,66 @@ namespace Server {
             }
         }
 
-        public static async Task<bool> ValidateLogin(string username, string password) {
+        public static async Task<int> ExecuteNonQuery(string Query, SqlParameter[]? Paramaters = null) {
+            try {
 
-            string loginQuery = "SELECT COUNT(*) FROM Users WHERE Username = @Username AND Password = @Password";
+                using SqlConnection connection = new(ConnectionString);
+                using SqlCommand command = new(Query, connection);
 
-            SqlParameter[] parameters = [
-                new SqlParameter("@Username", username),
-                new SqlParameter("@Password", password)
-            ];
+                if (Paramaters != null) {
+                    command.Parameters.AddRange(Paramaters);
+                }
 
-            object? result = await RunQuery(loginQuery, parameters);
+                connection.Open();
 
-            if (result == null) {
-                return false;
+                int result = await command.ExecuteNonQueryAsync();
+                return result;
+
+            } catch (Exception ex) {
+                Debug.Write(ex.Message);
+                return -1;
             }
-
-            return (int)result == 1;
         }
+
+        public static void FillDataTable(DataTable dt, string Query, SqlParameter[]? Paramaters = null) {
+            try {
+
+                using SqlConnection connection = new(ConnectionString);
+                using SqlCommand command = new(Query, connection);
+
+                if (Paramaters != null) {
+                    command.Parameters.AddRange(Paramaters);
+                }
+
+                connection.Open();
+
+                using SqlDataAdapter adapter = new(command);
+
+                adapter.Fill(dt);
+
+            } catch (Exception ex) {
+                Debug.Write(ex.Message);
+            }
+        }
+
+
+        
+        //public static async Task<bool> ValidateLogin(string username, string password) {
+
+        //    string loginQuery = "SELECT COUNT(*) FROM Users WHERE Username = @Username AND Password = @Password";
+
+        //    SqlParameter[] parameters = [
+        //        new SqlParameter("@Username", username),
+        //        new SqlParameter("@Password", password)
+        //    ];
+
+        //    object? result = await ExecuteScalar(loginQuery, parameters);
+
+        //    if (result == null) {
+        //        return false;
+        //    }
+
+        //    return (int)result == 1;
+        //}
     }
 }

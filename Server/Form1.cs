@@ -9,7 +9,7 @@ namespace Server {
         private void Form1_Load(object sender, EventArgs e) {
             try {
 
-                Global.WebServer = new();
+                ServerLaunch.LaunchServer();
 
             } catch (Exception ex) {
                 Debug.WriteLine(ex.Message);
