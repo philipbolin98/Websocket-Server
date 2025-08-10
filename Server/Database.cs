@@ -5,7 +5,7 @@ using Microsoft.Data.SqlClient;
 namespace Server {
     public class Database {
 
-        public static string ConnectionString = "Server=PHILIPPC\\SQLEXPRESS;Database=WebsocketServer;Trusted_Connection=True;TrustServerCertificate=True";
+        public static string ConnectionString = "Server=PHILIPPC;Database=WebsocketServer;Trusted_Connection=True;TrustServerCertificate=True";
 
         public static async Task<object?> ExecuteScalar(string Query, SqlParameter[]? Paramaters = null) {
             try {
@@ -49,7 +49,7 @@ namespace Server {
             }
         }
 
-        public static void FillDataTable(DataTable dt, string Query, SqlParameter[]? Paramaters = null) {
+        public static void FillDataSet(DataSet ds, string Query, SqlParameter[]? Paramaters = null) {
             try {
 
                 using SqlConnection connection = new(ConnectionString);
@@ -63,14 +63,12 @@ namespace Server {
 
                 using SqlDataAdapter adapter = new(command);
 
-                adapter.Fill(dt);
+                adapter.Fill(ds);
 
             } catch (Exception ex) {
                 Debug.Write(ex.Message);
             }
         }
-
-
         
         //public static async Task<bool> ValidateLogin(string username, string password) {
 

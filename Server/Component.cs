@@ -1,28 +1,23 @@
 ﻿using Microsoft.Data.SqlClient;
 using System.Data;
-using System.Text.Json;
 
 namespace Server {
-    internal class Component {
+    public class Component {
 
-        public static JsonSerializerOptions DeserializeOptions = new() {
-            PropertyNameCaseInsensitive = true,
-            UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Skip
-        };
+        public int ID;
+        public string Name;
+        public OrderedDictionary<string, ComponentProp> Properties { get; set; } = [];
 
-        public int ID { get; set; }
-        public string Name { get; set; }
-        public List<ComponentProp> Properties { get; set; }
-
-        //public Dictionary<string, ComponentProp> Properties { get; set; } = [];
-
-        public Component(int id, string name, List<ComponentProp> props) {
+        public Component(int id, string name) {
             this.ID = id;
             this.Name = name;
-            this.Properties = props;
-            //foreach (ComponentProp prop in props) {
-            //    Properties.Add(prop.Name, prop);
-            //}
+
+            Global.dComponentsByName.Add(name, this);
+            Global.dComponentsByID.Add(id, this);
+        }
+
+        public ComponentMini Mini(bool includeProps = false) {
+            return new ComponentMini(this, includeProps);
         }
 
         /// <summary>
@@ -32,16 +27,8 @@ namespace Server {
         /// <param name="propString"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static Component? Load(string name, string propString, int id) {
-
-            List<ComponentProp>? props = JsonSerializer.Deserialize<List<ComponentProp>>(propString, DeserializeOptions);
-
-            if (props == null) {
-                return null;
-            }
-
-            Component component = new(id, name, props);
-            Global.dComponents.Add(name, component);
+        public static Component Load(string name, int id) {
+            Component component = new(id, name);
             return component;
         }
 
@@ -52,23 +39,12 @@ namespace Server {
         /// <returns></returns>
         public static async Task<Component?> Create(string name) {
 
-            name = IncrementName(name);
+            name = HelperFunctions.IncrementName(name, Global.dComponentsByName.Keys.ToHashSet());
 
-            ComponentProp prop = new() {
-                Name = "Name",
-                Default = name,
-                Type = DataType.String
-            };
-
-            List<ComponentProp> props = [prop];
-
-            string query = "INSERT INTO Components OUTPUT Inserted.ComponentID VALUES(@Name, @DefaultConfig)";
-
-            string config = JsonSerializer.Serialize(props);
+            string query = "INSERT INTO Components OUTPUT Inserted.ComponentID VALUES(@Name)";
 
             SqlParameter[] parameters = [
-                new SqlParameter("@Name", name),
-                new SqlParameter("@DefaultConfig", config)
+                new SqlParameter("@Name", name)
             ];
 
             int? id = (int?)await Database.ExecuteScalar(query, parameters);
@@ -77,39 +53,41 @@ namespace Server {
                 return null;
             }
 
-            Component component = new(id.Value, name, props);
-            Global.dComponents.Add(name, component);
+            Component component = new(id.Value, name);
+
+            await ComponentProp.Create(component, "Name", 0, PropType.Value, DataType.String, EditType.Text, component.Name, ""); //Add the name prop
+
             return component;
         }
 
-        public static string IncrementName(string name) {
+        public static async Task Delete(Component component) {
 
-            if (!Global.dComponents.ContainsKey(name)) {
-                return name;
+            int count = component.Properties.Count;
+
+            for (int i = 0; i < count; i++) {
+                component.Properties.Values.First().Delete();
             }
 
-            string numberString = "";
+            Global.dComponentsByName.Remove(component.Name);
+            Global.dComponentsByID.Remove(component.ID);
 
-            for (int i = name.Length - 1; i >= 0; i--) {
+            using DataSet dataset = new();
 
-                string character =  name[i].ToString();
+            string query1 = "DELETE FROM Components WHERE ComponentID = @ComponentID";
 
-                if (int.TryParse(character, out int digit)) {
-                    numberString = digit.ToString() + numberString;
-                } else {
-                    break;
-                }
-            }
+            SqlParameter[] parameters1 = [
+                new SqlParameter("@ComponentID", component.ID)
+            ];
 
-            string baseName = name.Substring(0, name.Length - numberString.Length);
-            int number = numberString == "" ? 1 : int.Parse(numberString);
+            await Database.ExecuteNonQuery(query1, parameters1);
 
-            do {
-                number++;
-                name = $"{baseName}{number}";
-            } while (Global.dComponents.ContainsKey(name));
+            string query2 = "DELETE FROM ComponentProps WHERE ComponentID = @ComponentID";
 
-            return name;
+            SqlParameter[] parameters2 = [
+                new SqlParameter("@ComponentID", component.ID)
+            ];
+
+            await Database.ExecuteNonQuery(query2, parameters2);
         }
 
         /// <summary>
@@ -117,30 +95,59 @@ namespace Server {
         /// </summary>
         public static void LoadComponentsFromDB() {
 
-            string query = "SELECT * FROM Components";
+            using DataSet dataset = new();
 
-            using DataTable dataTable = new();
+            string query1 = "SELECT * FROM Components";
 
-            Database.FillDataTable(dataTable, query);
+            Database.FillDataSet(dataset, query1);
 
-            foreach (DataRow row in dataTable.Rows) {
+            var ComponentsTable = dataset.Tables[0];
+            
+            foreach (DataRow row in ComponentsTable.Rows) {
                 int id = (int)row["ComponentID"];
                 string name = (string)row["Name"];
-                string defaultConfig = (string)row["DefaultConfig"];
-                Load(name, defaultConfig, id);
+                Load(name, id);
+            }
+
+            dataset.Clear();
+
+            string query2 = "SELECT * FROM ComponentProps";
+
+            Database.FillDataSet(dataset, query2);
+
+            var ComponentPropsTable = dataset.Tables[0];
+
+            foreach (DataRow row in ComponentPropsTable.Rows) {
+
+                int id = (int)row["ComponentPropID"];
+                int componentId = (int)row["ComponentID"];
+                string name = (string)row["Name"];
+                int index = (int)row["Index"];
+                PropType propType = (PropType)row["PropType"];
+                DataType dataType = (DataType)row["DataType"];
+                EditType editType = (EditType)row["EditType"];
+                object defaultValue = row["DefaultValue"];
+                string helpText = (string)row["HelpText"];
+
+                ComponentProp.Load(id, componentId, name, index, propType, dataType, editType, defaultValue, helpText);
             }
         }
     }
 
-    internal class ComponentProp {
-        public string Name { get; set; } = "";
-        public DataType Type { get; set; } = DataType.Any;
-        public object Default { get; set; } = "";
-    }
+    public class ComponentMini {
+        public string ID { get; set; }
+        public string Name { get; set; }
+        public List<ComponentPropMini> Properties { get; set; } = [];
 
-    public enum DataType {
-        Any,
-        String,
-        Number
+        public ComponentMini(Component component, bool includeProps) {
+            this.ID = $"c_{component.ID}";
+            this.Name = component.Name;
+
+            if (includeProps) {
+                foreach (ComponentProp prop in component.Properties.Values) {
+                    this.Properties.Add(prop.Mini());
+                }
+            }
+        }
     }
 }

@@ -1,21 +1,16 @@
 ﻿class Editor {
 
     Element: HTMLElement;
-
     Header: HTMLElement;
     Menu: HTMLElement;
     AddButton: HTMLElement;
-
+    DeleteButton: HTMLElement;
     CloseButton: HTMLElement;
-
     BodyElement: HTMLElement;
-
     Tree: Tree;
-
+    Table: Table;
     ResizerElement: HTMLElement;
-
     TableElement: HTMLElement;
-
     Visible: boolean = false;
 
     constructor(id: string, data: any[]) {
@@ -43,8 +38,13 @@
         this.AddButton = document.createElement("div");
         this.AddButton.classList.add("menubutton");
         this.AddButton.innerText = '+';
-        
+
+        this.DeleteButton = document.createElement("div");
+        this.DeleteButton.classList.add("menubutton");
+        this.DeleteButton.innerText = '-';
+
         this.Menu.appendChild(this.AddButton);
+        this.Menu.appendChild(this.DeleteButton);
 
         this.BodyElement = document.createElement("div");
         this.BodyElement.classList.add("body");
@@ -54,8 +54,9 @@
         this.ResizerElement = document.createElement("div");
         this.ResizerElement.classList.add("resizer");
 
-        this.TableElement = document.createElement("div");
-        this.TableElement.classList.add("table");
+        this.Table = new Table();
+
+        this.TableElement = this.Table.Element;
 
         this.BodyElement.appendChild(this.Tree.Element);
         this.BodyElement.appendChild(this.ResizerElement);
@@ -93,6 +94,7 @@
     }
 
     AddEvents() {
+
         this.CloseButton.addEventListener("click", () => {
             this.Hide();
         });
@@ -143,5 +145,41 @@
         this.AddButton.addEventListener("click", (e: MouseEvent) => {
             SendWebSocketRequest("AddComponent");
         });
+
+        this.DeleteButton.addEventListener("click", (e: MouseEvent) => {
+
+            let node = this.Tree.SelectedNode;
+
+            if (!node) {
+                return;
+            }
+
+            let id = node.ID;
+            let type = id.substring(0, 1);
+
+            switch (type) {
+                case "c":
+                    SendWebSocketRequest("DeleteComponent", [node.ID]);
+                    break;
+                case "p":
+                    //SendWebSocketRequest("GetComponentProp", [id]);
+                    break;
+            }
+        });
+
+        this.Tree.onSelect = (node: TreeNode) => {
+
+            let id = node.ID;
+            let type = id.substring(0, 1);
+
+            switch (type) {
+                case "c":
+                    SendWebSocketRequest("GetComponent", [id]);
+                    break;
+                case "p":
+                    //SendWebSocketRequest("GetComponentProp", [id]);
+                    break;
+            }
+        }
     }
 }

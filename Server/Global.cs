@@ -9,6 +9,10 @@
 
         public static string WebFolderPath = $"{ProjectFolderPath}\\web";
 
-        public static Dictionary<string, object> dComponents = new(StringComparer.OrdinalIgnoreCase);
+        public static Dictionary<string, Component> dComponentsByName = new(StringComparer.OrdinalIgnoreCase);
+
+        public static Dictionary<int, Component> dComponentsByID = [];
+
+        public static Dictionary<int, ComponentProp> dComponentPropsByID = [];
     }
 }

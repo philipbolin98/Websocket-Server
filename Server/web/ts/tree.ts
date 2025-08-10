@@ -1,12 +1,12 @@
 class Tree {
 
     Element: HTMLElement;
-
-    Data: TreeNode[] = [];
-
+    RootNodes: TreeNode[] = [];
+    NodesByID: Map<string, TreeNode> = new Map();
     SelectedNode: TreeNode | null = null;
 
-    NodesByID: Map<string, TreeNode> | null = null;
+    //Events
+    onSelect?: (Node: TreeNode) => void;
 
     constructor(data: any[]) {
 
@@ -15,13 +15,14 @@ class Tree {
         this.Element.style.width = "200px";
 
         for (let node of data) {
-            this.Data.push(new TreeNode(this, node, this.Element, 0));
+            this.AddNode(node)
         }
 
         this.AddEvents();
     }
 
     AddEvents() {
+
         this.Element.addEventListener("keydown", (e: KeyboardEvent) => {
 
             if (!this.SelectedNode) {
@@ -30,6 +31,9 @@ class Tree {
 
             switch (e.key) {
                 case "ArrowDown": {
+
+                    e.preventDefault();
+
                     let nextSibling = this.SelectedNode.GetNextSibling();
                     if (nextSibling) {
                         nextSibling.Select();
@@ -37,6 +41,9 @@ class Tree {
                     break;
                 }
                 case "ArrowUp": {
+
+                    e.preventDefault();
+
                     let prevSibling = this.SelectedNode.GetPrevSibling();
                     if (prevSibling) {
                         prevSibling.Select();
@@ -49,8 +56,24 @@ class Tree {
         });
     }
 
-    AddNode(node: any) {
-        this.Data.push(new TreeNode(this, node, this.Element, 0));
+    GetNodeByID(id: string): TreeNode | null {
+
+        if (!this.NodesByID.has(id)) {
+            return null;
+        }
+
+        let node = this.NodesByID.get(id) as TreeNode;
+        return node;
+    }
+
+    AddNode(data: any, parentNode: TreeNode | null = null): TreeNode {
+        let node = new TreeNode(this, data, parentNode);
+        return node;
+    }
+
+    DeleteNode(id: string) {
+        let node = this.GetNodeByID(id)
+        node?.Delete();
     }
 }
 
@@ -58,7 +81,7 @@ class TreeNode {
 
     static BranchWidth: number = 20;
 
-    ID: number;
+    ID: string;
     Tree: Tree;
     Element: HTMLElement;
     NodeContainer: HTMLElement;
@@ -72,14 +95,18 @@ class TreeNode {
     ChildContainer: HTMLElement;
     Depth: number;
     IsOpen: boolean = false;
+    ParentNode: TreeNode | null;
 
-    constructor(tree: Tree, data: any, parentElement: HTMLElement, depth: number) {
+    constructor(tree: Tree, data: any, parentNode: TreeNode | null) {
 
         this.ID = data.ID;
         this.Tree = tree;
+        this.ParentNode = parentNode;
+        this.Tree.NodesByID.set(this.ID, this);
 
         this.Element = document.createElement("div");
         this.Element.classList.add("treenode");
+        this.Element.tabIndex = -1;
 
         this.NodeContainer = document.createElement("div");
         this.NodeContainer.classList.add("treenodecontainer");
@@ -113,19 +140,24 @@ class TreeNode {
 
         this.Element.appendChild(this.NodeContainer);
 
-        this.Depth = depth;
-        this.SpacerElement.style.width = `${TreeNode.BranchWidth * depth}px`;
+        this.Depth = parentNode ? parentNode.Depth + 1 : 0;
+        this.SpacerElement.style.width = `${TreeNode.BranchWidth * this.Depth}px`;
 
         if (data.Children) {
-            for (let childNode of data.Children) {
-                this.Children.push(new TreeNode(tree, childNode, this.ChildContainer, depth + 1));
+            for (let childData of data.Children) {
+                tree.AddNode(childData, this)
             }
         }
-        
-        if (this.Children.length > 0) {
-            this.ExpandButtonContainer.appendChild(this.ExpandButton);
+
+        let siblings = parentNode ? parentNode.Children : tree.RootNodes;
+
+        if (parentNode && siblings.length === 0) {
+            parentNode.ExpandButtonContainer.appendChild(parentNode.ExpandButton);
         }
 
+        siblings.push(this);
+
+        let parentElement = parentNode ? parentNode.ChildContainer : tree.Element;
         parentElement.appendChild(this.Element);
 
         this.AddEvents();
@@ -180,6 +212,8 @@ class TreeNode {
         this.Tree.SelectedNode?.Deselect();
         this.Element.classList.add("selected");
         this.Tree.SelectedNode = this;
+
+        this.Tree.onSelect?.(this);
     }
 
     Deselect() {
@@ -192,11 +226,76 @@ class TreeNode {
         this.Tree.SelectedNode = null;
     }
 
+    GetIndex(): number {
+        let siblings = this.ParentNode ? this.ParentNode.Children : this.Tree.RootNodes;
+        return siblings.indexOf(this);
+    }
+
     GetNextSibling(): TreeNode | null {
-        return null;
+
+        let index = this.GetIndex();
+        let siblings = this.ParentNode ? this.ParentNode.Children : this.Tree.RootNodes;
+
+        if (index === siblings.length - 1) {
+            return null;
+        }
+
+        return siblings[index + 1];
     }
 
     GetPrevSibling(): TreeNode | null {
-        return null;
+
+        let index = this.GetIndex();
+        let siblings = this.ParentNode ? this.ParentNode.Children : this.Tree.RootNodes;
+
+        if (index === 0) {
+            return null;
+        }
+
+        return siblings[index - 1];
+    }
+
+    Delete() {
+
+        this.DeleteChildren();
+
+        if (this.Tree.SelectedNode === this) {
+
+            let nodeToSelect = this.GetNextSibling();
+
+            if (nodeToSelect === null) {
+
+                nodeToSelect = this.GetPrevSibling();
+
+                if (nodeToSelect === null) {
+                    nodeToSelect = this.ParentNode;
+                }
+            }
+
+            if (nodeToSelect !== null) {
+                nodeToSelect.Select();
+            } else {
+                this.Deselect();
+            }
+        }
+
+        let siblings = this.ParentNode === null ? this.Tree.RootNodes : this.ParentNode.Children;
+        let index = siblings.indexOf(this);
+        siblings.splice(index, 1);
+
+        this.Tree.NodesByID.delete(this.ID);
+
+        this.Element.remove();
+    }
+
+    DeleteChildren() {
+
+        let count = this.Children.length;
+
+        //Recursively remove all child nodes from the tree before removing this one
+        for (let i = 0; i < count; i++) {
+            let child = this.Children[0];
+            child.Delete();
+        }
     }
 }

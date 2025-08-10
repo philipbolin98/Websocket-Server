@@ -25,7 +25,7 @@ function CreateWebSocket(): void {
     });
 }
 
-function SendWebSocketRequest(functionName: string, params: object[] = []): void {
+function SendWebSocketRequest(functionName: string, params: any[] = []): void {
 
     let data = new SocketRequest(functionName, params);
 
@@ -45,10 +45,10 @@ function HandleWebSocketResponse(message: string) {
         return;
     }
 
-    let functionName = response.FunctionName;
+    let functionName: string = response.FunctionName;
     let data = result.Data;
 
-    ClientFunctionHandler[functionName](data);
+    (ClientFunctionHandlers as any)[functionName](data);
 }
 
 class SocketRequest {
@@ -73,21 +73,6 @@ class Result<T> {
     Data?: T;
 }
 
-class ClientFunctionHandler {
-
-    static AddComponent(data: any) {
-
-        ComponentEditor?.Tree.AddNode(data);
-    }
-
-    static GetComponents(data: any[]) {
-
-        if (!ComponentEditor) {
-            ComponentEditor = new Editor("componenteditor", data);
-        }
-    }
-}
-
 function AddEvents(): void {
 
     document.addEventListener("contextmenu", (e: MouseEvent) => {
@@ -97,15 +82,6 @@ function AddEvents(): void {
 
     MainElement?.addEventListener("pointerdown", (e: PointerEvent) => {
         HideContextMenu(e);
-    });
-
-    let loginButton = document.getElementById("login");
-
-    loginButton?.addEventListener("click", (e: MouseEvent) => {
-        let usernameInput: HTMLInputElement = document.getElementById("username") as HTMLInputElement;
-        let passwordInput: HTMLInputElement = document.getElementById("password") as HTMLInputElement;
-
-        SendWebSocketRequest(`Login:${usernameInput.value},${passwordInput.value}`);
     });
 }
 
