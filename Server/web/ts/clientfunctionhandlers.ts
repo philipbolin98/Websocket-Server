@@ -1,13 +1,13 @@
 class ClientFunctionHandlers {
 
-    static GetComponents(data: any[]) {
+    static GetComponents(data: any[], storage: any[]) {
 
         if (!ComponentEditor) {
             ComponentEditor = new Editor("componenteditor", data);
         }
     }
 
-    static GetComponent(data: any) {
+    static GetComponent(data: any, storage: any[]) {
 
         if (!ComponentEditor) {
             return;
@@ -26,13 +26,25 @@ class ClientFunctionHandlers {
         }
     }
 
-    static AddComponent(data: any) {
-
+    static AddComponent(data: any, storage: any[]) {
         ComponentEditor?.Tree.AddNode(data);
     }
 
-    static DeleteComponent(id: any) {
+    static DeleteComponent(id: any, storage: any[]) {
         let idString: string = `c_${id}`;
+        ComponentEditor?.Tree.DeleteNode(idString);
+    }
+
+    static AddComponentProp(data: any, storage: any[]) {
+
+        let parentId = data.ParentID;
+        let parentNode = ComponentEditor?.Tree.GetNodeByID(parentId);
+
+        ComponentEditor?.Tree.AddNode(data, parentNode);
+    }
+
+    static DeleteComponentProp(id: any, storage: any[]) {
+        let idString: string = `p_${id}`;
         ComponentEditor?.Tree.DeleteNode(idString);
     }
 }

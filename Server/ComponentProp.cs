@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using System.ComponentModel;
 
 namespace Server {
     public class ComponentProp {
@@ -42,7 +43,8 @@ namespace Server {
             return prop;
         }
 
-        public static async Task<ComponentProp?> Create(Component component, string name, int index, PropType propType, DataType dataType, EditType editType, object defaultValue, string helpText) {
+        public static async Task<ComponentProp?> Create(Component component, string name, string defaultValue = "", int index = 0, PropType propType = PropType.Value,
+            DataType dataType = DataType.Any, EditType editType = EditType.Text, string helpText = "") {
 
             name = HelperFunctions.IncrementName(name, component.Properties.Keys.ToHashSet());
 
@@ -55,7 +57,7 @@ namespace Server {
                 new SqlParameter("@PropType", propType),
                 new SqlParameter("@DataType", dataType),
                 new SqlParameter("@EditType", editType),
-                new SqlParameter("@DefaultValue", defaultValue.ToString()),
+                new SqlParameter("@DefaultValue", defaultValue),
                 new SqlParameter("@HelpText", helpText)
             ];
 
@@ -69,19 +71,33 @@ namespace Server {
             return prop;
         }
 
-        public void Delete() {
-            Global.dComponentPropsByID.Remove(this.ID);
-            this.Component?.Properties.Remove(this.Name);
-            this.Component = null;
+        public static async Task Delete(ComponentProp prop, bool deletingComponent) {
+
+            Global.dComponentPropsByID.Remove(prop.ID);
+            prop.Component?.Properties.Remove(prop.Name);
+            prop.Component = null;
+
+            if (!deletingComponent) {
+
+                string query = "DELETE FROM ComponentProps WHERE ComponentPropID = @ComponentPropID";
+
+                SqlParameter[] parameters = [
+                    new SqlParameter("@ComponentPropID", prop.ID)
+                ];
+
+                await Database.ExecuteNonQuery(query, parameters);
+            }
         }
     }
 
     public class ComponentPropMini {
         public string ID { get; set; }
+        public string ParentID { get; set; }
         public string Name { get; set; }
 
         public ComponentPropMini(ComponentProp prop) {
             this.ID = $"p_{prop.ID}";
+            this.ParentID = $"c_{prop.Component?.ID}";
             this.Name = prop.Name;
         }
     }

@@ -7,6 +7,7 @@ class Tree {
 
     //Events
     onSelect?: (Node: TreeNode) => void;
+    onKeyDown?: (e: KeyboardEvent, Node: TreeNode | null) => void;
 
     constructor(data: any[]) {
 
@@ -25,34 +26,62 @@ class Tree {
 
         this.Element.addEventListener("keydown", (e: KeyboardEvent) => {
 
-            if (!this.SelectedNode) {
+            let node = this.SelectedNode;
+
+            if (!node) {
                 return;
             }
 
             switch (e.key) {
-                case "ArrowDown": {
-
-                    e.preventDefault();
-
-                    let nextSibling = this.SelectedNode.GetNextSibling();
-                    if (nextSibling) {
-                        nextSibling.Select();
-                    }
-                    break;
-                }
                 case "ArrowUp": {
 
                     e.preventDefault();
 
-                    let prevSibling = this.SelectedNode.GetPrevSibling();
+                    let prevSibling = node.GetPrevNode();
                     if (prevSibling) {
                         prevSibling.Select();
+                    }
+                    break;
+                }
+                case "ArrowDown": {
+
+                    e.preventDefault();
+
+                    let nextNode = node.GetNextNode();
+                    if (nextNode) {
+                        nextNode.Select();
+                    }
+                    break;
+                }
+                case "ArrowLeft": {
+
+                    e.preventDefault();
+
+                    if (node.Children.length > 0 && node.IsOpen) {
+                        node.Close();
+                    } else {
+                        node.ParentNode?.Select();
+                    }
+                    break;
+                }
+                case "ArrowRight": {
+
+                    e.preventDefault();
+
+                    if (node.Children.length > 0) {
+                        if (node.IsOpen) {
+                            node.Children[0].Select();
+                        } else {
+                            node.Open();
+                        }
                     }
                     break;
                 }
                 default:
                     break;
             }
+
+            this.onKeyDown?.(e, this.SelectedNode);
         });
     }
 
@@ -179,11 +208,6 @@ class TreeNode {
     }
 
     OpenOrClose() {
-
-        if (this.Children.length === 0) {
-            return;
-        }
-
         if (this.IsOpen) {
             this.Close();
         } else {
@@ -192,6 +216,11 @@ class TreeNode {
     }
 
     Open() {
+
+        if (this.Children.length === 0) {
+            return;
+        }
+
         this.Element.appendChild(this.ChildContainer);
         this.ExpandButton.innerText = "-";
         this.IsOpen = true;
@@ -211,6 +240,7 @@ class TreeNode {
 
         this.Tree.SelectedNode?.Deselect();
         this.Element.classList.add("selected");
+        this.Element.focus();
         this.Tree.SelectedNode = this;
 
         this.Tree.onSelect?.(this);
@@ -255,9 +285,53 @@ class TreeNode {
         return siblings[index - 1];
     }
 
+    GetNextNode(): TreeNode | null {
+
+        if (this.IsOpen) {
+            return this.Children[0];
+        }
+
+        let nextSibling: TreeNode | null = null;
+        let node: TreeNode | null = this;
+
+        do {
+
+            nextSibling = node.GetNextSibling();
+            node = node.ParentNode;
+
+        } while (!nextSibling && node);
+
+        return nextSibling;
+    }
+
+    GetPrevNode(): TreeNode | null {
+
+        let prevSibling = this.GetPrevSibling();
+
+        if (!prevSibling) {
+            return this.ParentNode;
+        }
+
+        if (!prevSibling.IsOpen) {
+            return prevSibling;
+        }
+
+        let lastChild: TreeNode = prevSibling;
+
+        do {
+
+            lastChild = lastChild.Children[lastChild.Children.length - 1];
+
+        } while (lastChild.IsOpen || lastChild.Children.length > 0);
+
+        return lastChild;
+    }
+
     Delete() {
 
         this.DeleteChildren();
+
+        let parentNode = this.ParentNode;
 
         if (this.Tree.SelectedNode === this) {
 
@@ -268,7 +342,7 @@ class TreeNode {
                 nodeToSelect = this.GetPrevSibling();
 
                 if (nodeToSelect === null) {
-                    nodeToSelect = this.ParentNode;
+                    nodeToSelect = parentNode;
                 }
             }
 
@@ -279,11 +353,18 @@ class TreeNode {
             }
         }
 
-        let siblings = this.ParentNode === null ? this.Tree.RootNodes : this.ParentNode.Children;
+        let siblings = parentNode === null ? this.Tree.RootNodes : parentNode.Children;
         let index = siblings.indexOf(this);
         siblings.splice(index, 1);
 
         this.Tree.NodesByID.delete(this.ID);
+
+        if (parentNode && siblings.length === 0) {
+            parentNode.Close();
+            parentNode.ExpandButton.remove();
+        }
+
+        this.ParentNode = null;
 
         this.Element.remove();
     }

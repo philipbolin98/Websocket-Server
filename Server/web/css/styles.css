@@ -142,6 +142,10 @@ html, body {
     flex-direction: column;
 }
 
+.treenode:focus-visible {
+    outline: none;
+}
+
 .treenodechildcontainer {
     flex-direction: column;
 }

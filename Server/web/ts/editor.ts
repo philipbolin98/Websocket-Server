@@ -143,7 +143,25 @@
         });
 
         this.AddButton.addEventListener("click", (e: MouseEvent) => {
-            SendWebSocketRequest("AddComponent");
+
+            let node = this.Tree.SelectedNode;
+
+            if (!node) {
+                SendWebSocketRequest("AddComponent");
+                return;
+            }
+
+            let id = node.ID;
+            let type = id.substring(0, 1);
+
+            switch (type) {
+                case "c":
+                    SendWebSocketRequest("AddComponent");
+                    break;
+                case "p":
+                    SendWebSocketRequest("AddComponentProp", [node.ParentNode?.ID]);
+                    break;
+            }
         });
 
         this.DeleteButton.addEventListener("click", (e: MouseEvent) => {
@@ -159,10 +177,10 @@
 
             switch (type) {
                 case "c":
-                    SendWebSocketRequest("DeleteComponent", [node.ID]);
+                    SendWebSocketRequest("DeleteComponent", [id]);
                     break;
                 case "p":
-                    //SendWebSocketRequest("GetComponentProp", [id]);
+                    SendWebSocketRequest("DeleteComponentProp", [id]);
                     break;
             }
         });
@@ -174,10 +192,42 @@
 
             switch (type) {
                 case "c":
+
+                    //Quick fix for now. Dont re retrive the component info or else it will delete + re add the child nodes
+                    //This causes the component node to close just from selecting it
+                    if (node.Children.length > 0) {
+                        return;
+                    }
+
                     SendWebSocketRequest("GetComponent", [id]);
                     break;
                 case "p":
                     //SendWebSocketRequest("GetComponentProp", [id]);
+                    break;
+            }
+        }
+
+        this.Tree.onKeyDown = (e: KeyboardEvent, node: TreeNode | null) => {
+
+            switch (e.key) {
+                case "Delete":
+
+                    if (!node) {
+                        return;
+                    }
+
+                    let id = node.ID;
+                    let type = id.substring(0, 1);
+
+                    switch (type) {
+                        case "c":
+                            SendWebSocketRequest("DeleteComponent", [id]);
+                            break;
+
+                        case "p":
+                            SendWebSocketRequest("DeleteComponentProp", [id]);
+                            break;
+                    }
                     break;
             }
         }

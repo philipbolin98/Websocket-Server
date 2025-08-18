@@ -4,6 +4,9 @@ var ContextMenuObject: ContextMenu | null = null;
 var ComponentEditor: Editor | null = null;
 var ObjectEditor: Editor | null = null;
 
+var MessageIndex: number = 0;
+var MessageMap: Map<number, any> = new Map();
+
 function CreateWebSocket(): void {
 
     Socket = new WebSocket(`ws://${window.location.host}/`);
@@ -25,11 +28,16 @@ function CreateWebSocket(): void {
     });
 }
 
-function SendWebSocketRequest(functionName: string, params: any[] = []): void {
+function SendWebSocketRequest(functionName: string, params: any[] = [], storage: any[] = []): void {
 
-    let data = new SocketRequest(functionName, params);
+    let index = MessageIndex;
+    MessageIndex++;
+
+    let data = new SocketRequest(functionName, index, params);
 
     let message: string = JSON.stringify(data);
+
+    MessageMap.set(index, storage);
 
     Socket.send(message);
 }
@@ -48,22 +56,30 @@ function HandleWebSocketResponse(message: string) {
     let functionName: string = response.FunctionName;
     let data = result.Data;
 
-    (ClientFunctionHandlers as any)[functionName](data);
+    let index = response.Index;
+
+    let storage = MessageMap.get(index);
+    MessageMap.delete(index);
+
+    (ClientFunctionHandlers as any)[functionName](data, storage);
 }
 
 class SocketRequest {
 
     FunctionName: string;
+    Index: number;
     Parameters: object[];
 
-    constructor(functionName: string, params: object[] = []) {
+    constructor(functionName: string, index: number, params: object[] = []) {
         this.FunctionName = functionName;
+        this.Index = index;
         this.Parameters = params;
     }
 }
 
 class SocketResponse<T> {
     FunctionName: string = "";
+    Index: number = -1;
     Result!: Result<T>;
 }
 

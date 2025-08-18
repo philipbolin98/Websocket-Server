@@ -61,6 +61,50 @@ namespace Server {
             return Result<object?>.Pass(component.ID);
         }
 
+        public static async Task<Result<object?>> AddComponentProp(object[] parameters) {
+
+            string? idString = ((JsonElement)parameters[0]).GetString();
+
+            if (idString == null || idString.Length <= 2) {
+                return Result<object?>.Fail("Invalid component id.");
+            }
+
+            int id = int.Parse(idString.Substring(2));
+
+            var component = Global.dComponentsByID[id];
+
+            var prop = await ComponentProp.Create(component, "Prop");
+
+            if (prop == null) {
+                return Result<object?>.Fail("Error adding new component prop.");
+            } else {
+                return Result<object?>.Pass(prop.Mini());
+            }
+        }
+
+        public static async Task<Result<object?>> DeleteComponentProp(object[] parameters) {
+
+            string? idString = ((JsonElement)parameters[0]).GetString();
+
+            if (idString == null || idString.Length <= 2) {
+                return Result<object?>.Fail("Invalid component id.");
+            }
+
+            int id = int.Parse(idString.Substring(2));
+
+            if (!Global.dComponentPropsByID.TryGetValue(id, out ComponentProp? prop)) {
+                return Result<object?>.Fail("Invalid component prop id.");
+            }
+
+            if (prop.Name == "Name") {
+                return Result<object?>.Fail("Cannot delete the Name prop.");
+            }
+
+            await ComponentProp.Delete(prop, false);
+
+            return Result<object?>.Pass(prop.ID);
+        }
+
         public class Result<T> {
             public bool Success { get; set; }
             public string? Message { get; set; }

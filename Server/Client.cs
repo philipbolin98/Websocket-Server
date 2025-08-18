@@ -60,7 +60,7 @@ namespace Server {
                 }
 
                 var ReturnValue = await FunctionRouter.DispatchAsync(data.FunctionName, data.Parameters);
-                SocketResponse response = new(data.FunctionName, ReturnValue);
+                SocketResponse response = new(data.FunctionName, data.Index, ReturnValue);
 
                 return System.Text.Json.JsonSerializer.Serialize(response);
 
@@ -128,15 +128,18 @@ namespace Server {
 
     public class SocketRequest {
         public string FunctionName { get; set; } = "";
+        public int Index { get; set; } = -1;
         public object[] Parameters { get; set; } = [];
     }
 
     public class SocketResponse {
         public string FunctionName { get; set; }
+        public int Index { get; set; } = -1;
         public Result<object?> Result { get; set; }
 
-        public SocketResponse(string functionName, Result<object?> result) { 
+        public SocketResponse(string functionName, int index, Result<object?> result) { 
             this.FunctionName = functionName;
+            this.Index = index;
             this.Result = result;
         }
     }

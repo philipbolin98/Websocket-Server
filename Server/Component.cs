@@ -55,7 +55,7 @@ namespace Server {
 
             Component component = new(id.Value, name);
 
-            await ComponentProp.Create(component, "Name", 0, PropType.Value, DataType.String, EditType.Text, component.Name, ""); //Add the name prop
+            await ComponentProp.Create(component, "Name", component.Name); //Add the name prop
 
             return component;
         }
@@ -65,7 +65,7 @@ namespace Server {
             int count = component.Properties.Count;
 
             for (int i = 0; i < count; i++) {
-                component.Properties.Values.First().Delete();
+                await ComponentProp.Delete(component.Properties.Values.First(), true);
             }
 
             Global.dComponentsByName.Remove(component.Name);
