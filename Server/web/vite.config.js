@@ -1,9 +1,13 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
-    root: ".",              // index.html is here
     build: {
-        outDir: "dist",        // output folder
-        emptyOutDir: true
+        lib: {
+            entry: "./src/main.ts",
+            name: "MyApp",
+            fileName: () => "bundle.js",
+            formats: ["iife"]
+        },
+        minify: true
     }
 });

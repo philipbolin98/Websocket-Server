@@ -1,8 +1,7 @@
-﻿//import.meta.glob("./components/*.ts", { eager: true });
-
-import { ClientFunctionHandlers } from "./clientfunctionhandlers";
+﻿import { ClientFunctionHandlers } from "./clientfunctionhandlers";
 import { ContextMenu } from "./components/contextmenu";
 import { SendWebSocketRequest, HandleWebSocketResponse } from "./utils/websocket";
+import "../css/styles.css";
 
 var Socket: WebSocket;
 var ContextMenuObject: ContextMenu | null = null;

@@ -9,6 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="web\node_modules\**" />
+    <EmbeddedResource Remove="web\node_modules\**" />
+    <None Remove="web\node_modules\**" />
+    <TypeScriptCompile Remove="web\node_modules\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="web\tsconfig.json" />
   </ItemGroup>
 
@@ -20,8 +27,8 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="web\js\" />
-  </ItemGroup>
+  <Target Name="ViteBuild" BeforeTargets="Build">
+    <Exec Command="npm run build" WorkingDirectory="$(ProjectDir)web" />
+  </Target>
 
 </Project>

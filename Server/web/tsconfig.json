@@ -2,18 +2,15 @@
   "compileOnSave": true,
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */
-    "target": "es2020",
-    "lib": [ "es2020", "dom" ],
+    "target": "esnext",
     "module": "esnext",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "lib": [ "esnext", "dom" ],
     "strict": true,
+    "esModuleInterop": true,
     "skipLibCheck": true,
-    "sourceMap": true,
-    "noLib": false,
-    "rootDir": "src",
-    "outDir": "js",
-    "types": [ "vite/client" ]
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true
   },
   "include": [ "src" ]
 }
