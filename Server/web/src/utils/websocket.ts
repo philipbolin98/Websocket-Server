@@ -2,46 +2,59 @@ import { SocketRequest } from "../models/socketrequest";
 import { SocketResponse } from "../models/socketresponse";
 import { ClientFunctionHandlers } from "../clientfunctionhandlers";
 
-let Socket: WebSocket;
-var MessageIndex: number = 0;
-var MessageMap: Map<number, any> = new Map();
+export class ClientSocket {
 
-export function initWebSocket(url: string) {
-    Socket = new WebSocket(url);
-}
+    Socket: WebSocket;
+    MessageIndex: number = 0;
+    MessageMap: Map<number, any> = new Map();
 
-export function SendWebSocketRequest(functionName: string, params: any[] = [], storage: any[] = []): void {
-
-    let index = MessageIndex;
-    MessageIndex++;
-
-    let data = new SocketRequest(functionName, index, params);
-
-    let message: string = JSON.stringify(data);
-
-    MessageMap.set(index, storage);
-
-    Socket.send(message);
-}
-
-export function HandleWebSocketResponse(message: string) {
-
-    let response = JSON.parse(message) as SocketResponse<string>;
-
-    let result = response.Result;
-
-    if (!result.Success) {
-        console.error(result.Message);
-        return;
+    constructor(url: string) {
+        this.Socket = new WebSocket(url);
+        this.AddEvents();
     }
 
-    let functionName: string = response.FunctionName;
-    let data = result.Data;
+    AddEvents() {
 
-    let index = response.Index;
+        this.Socket.addEventListener("message", (e: MessageEvent) => {
+            this.HandleWebSocketResponse(e.data);
+        });
+    }
 
-    let storage = MessageMap.get(index);
-    MessageMap.delete(index);
+    SendWebSocketRequest(functionName: string, params: any[] = [], storage: any[] = []): void {
 
-    (ClientFunctionHandlers as any)[functionName](data, storage);
+        let index = this.MessageIndex;
+        this.MessageIndex++;
+
+        let data = new SocketRequest(functionName, index, params);
+
+        let message: string = JSON.stringify(data);
+
+        this.MessageMap.set(index, storage);
+
+        this.Socket.send(message);
+    }
+
+    HandleWebSocketResponse(message: string) {
+
+        let response = JSON.parse(message) as SocketResponse<string>;
+
+        let result = response.Result;
+
+        if (!result.Success) {
+            console.error(result.Message);
+            return;
+        }
+
+        let functionName: string = response.FunctionName;
+        let data = result.Data;
+
+        let index = response.Index;
+
+        let storage = this.MessageMap.get(index);
+        this.MessageMap.delete(index);
+
+        (ClientFunctionHandlers as any)[functionName](data, storage);
+    }
 }
+
+export const socket = new ClientSocket(`ws://${window.location.host}/`);

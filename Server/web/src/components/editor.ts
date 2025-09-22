@@ -1,6 +1,6 @@
-﻿import { SendWebSocketRequest } from "../utils/websocket";
-import { Tree, TreeNode } from "./tree";
+﻿import { Tree, TreeNode } from "./tree";
 import { Table } from "./table";
+import { socket } from "../utils/websocket";
 
 export class Editor {
 
@@ -152,20 +152,9 @@ export class Editor {
             let node = this.Tree.SelectedNode;
 
             if (!node) {
-                SendWebSocketRequest("AddComponent");
-                return;
-            }
-
-            let id = node.ID;
-            let type = id.substring(0, 1);
-
-            switch (type) {
-                case "c":
-                    SendWebSocketRequest("AddComponent");
-                    break;
-                case "p":
-                    SendWebSocketRequest("AddComponentProp", [node.ParentNode?.ID]);
-                    break;
+                socket.SendWebSocketRequest("AddComponent");
+            } else {
+                socket.SendWebSocketRequest("AddComponent", [node.ID]);
             }
         });
 
@@ -177,39 +166,11 @@ export class Editor {
                 return;
             }
 
-            let id = node.ID;
-            let type = id.substring(0, 1);
-
-            switch (type) {
-                case "c":
-                    SendWebSocketRequest("DeleteComponent", [id]);
-                    break;
-                case "p":
-                    SendWebSocketRequest("DeleteComponentProp", [id]);
-                    break;
-            }
+            socket.SendWebSocketRequest("DeleteComponent", [node.ID]);
         });
 
         this.Tree.onSelect = (node: TreeNode) => {
-
-            let id = node.ID;
-            let type = id.substring(0, 1);
-
-            switch (type) {
-                case "c":
-
-                    //Quick fix for now. Dont re retrive the component info or else it will delete + re add the child nodes
-                    //This causes the component node to close just from selecting it
-                    if (node.Children.length > 0) {
-                        return;
-                    }
-
-                    SendWebSocketRequest("GetComponent", [id]);
-                    break;
-                case "p":
-                    //SendWebSocketRequest("GetComponentProp", [id]);
-                    break;
-            }
+            socket.SendWebSocketRequest("GetComponent", [node.ID]);
         }
 
         this.Tree.onKeyDown = (e: KeyboardEvent, node: TreeNode | null) => {
@@ -221,19 +182,7 @@ export class Editor {
                         return;
                     }
 
-                    let id = node.ID;
-                    let type = id.substring(0, 1);
-
-                    switch (type) {
-                        case "c":
-                            SendWebSocketRequest("DeleteComponent", [id]);
-                            break;
-
-                        case "p":
-                            SendWebSocketRequest("DeleteComponentProp", [id]);
-                            break;
-                    }
-                    break;
+                    socket.SendWebSocketRequest("DeleteComponent", [node.ID]);
             }
         }
     }

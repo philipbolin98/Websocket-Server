@@ -1,31 +1,7 @@
-﻿import { ClientFunctionHandlers } from "./clientfunctionhandlers";
-import { ContextMenu } from "./components/contextmenu";
-import { SendWebSocketRequest, HandleWebSocketResponse } from "./utils/websocket";
+﻿import { ContextMenu } from "./components/contextmenu";
 import "../css/styles.css";
 
-var Socket: WebSocket;
 var ContextMenuObject: ContextMenu | null = null;
-
-function CreateWebSocket(): void {
-
-    Socket = new WebSocket(`ws://${window.location.host}/`);
-
-    Socket.addEventListener("open", (e: Event) => {
-        SendWebSocketRequest("GetComponents");
-    });
-
-    Socket.addEventListener("close", (e: CloseEvent) => {
-        console.log("close");
-    });
-
-    Socket.addEventListener("message", (e: MessageEvent) => {
-        HandleWebSocketResponse(e.data);
-    });
-
-    Socket.addEventListener("error", (e: Event) => {
-        console.log("error");
-    });
-}
 
 function AddEvents(): void {
 
@@ -41,7 +17,6 @@ function AddEvents(): void {
     });
 }
 
-CreateWebSocket();
 AddEvents();
 
 function ShowContextMenu(e: MouseEvent) {
@@ -63,8 +38,3 @@ function HideContextMenu(e: PointerEvent) {
 
     ContextMenuObject.Hide();
 }
-
-// register RPC functions
-ClientFunctionHandlers.register({
-    
-});

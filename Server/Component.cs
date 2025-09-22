@@ -89,49 +89,6 @@ namespace Server {
 
             await Database.ExecuteNonQuery(query2, parameters2);
         }
-
-        /// <summary>
-        /// Loads all the components from the DB on server launch
-        /// </summary>
-        public static void LoadComponentsFromDB() {
-
-            using DataSet dataset = new();
-
-            string query1 = "SELECT * FROM Components";
-
-            Database.FillDataSet(dataset, query1);
-
-            var ComponentsTable = dataset.Tables[0];
-            
-            foreach (DataRow row in ComponentsTable.Rows) {
-                int id = (int)row["ComponentID"];
-                string name = (string)row["Name"];
-                Load(name, id);
-            }
-
-            dataset.Clear();
-
-            string query2 = "SELECT * FROM ComponentProps";
-
-            Database.FillDataSet(dataset, query2);
-
-            var ComponentPropsTable = dataset.Tables[0];
-
-            foreach (DataRow row in ComponentPropsTable.Rows) {
-
-                int id = (int)row["ComponentPropID"];
-                int componentId = (int)row["ComponentID"];
-                string name = (string)row["Name"];
-                int index = (int)row["Index"];
-                PropType propType = (PropType)row["PropType"];
-                DataType dataType = (DataType)row["DataType"];
-                EditType editType = (EditType)row["EditType"];
-                object defaultValue = row["DefaultValue"];
-                string helpText = (string)row["HelpText"];
-
-                ComponentProp.Load(id, componentId, name, index, propType, dataType, editType, defaultValue, helpText);
-            }
-        }
     }
 
     public class ComponentMini {
