@@ -11,9 +11,9 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "noLib": false,
-    "rootDir": "ts",
+    "rootDir": "src",
     "outDir": "js",
     "types": [ "vite/client" ]
   },
-  "include": [ "ts" ]
+  "include": [ "src" ]
 }

@@ -1,7 +1,6 @@
 ﻿//import.meta.glob("./components/*.ts", { eager: true });
 
 import { ClientFunctionHandlers } from "./clientfunctionhandlers";
-import { Editor } from "./components/editor";
 import { ContextMenu } from "./components/contextmenu";
 import { SendWebSocketRequest, HandleWebSocketResponse } from "./utils/websocket";
 
