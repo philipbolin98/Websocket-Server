@@ -7,44 +7,44 @@ class ClientFunctionHandlers {
         }
     }
 
-    static GetComponent(data: any, storage: any[]) {
+    //static GetComponent(data: any, storage: any[]) {
 
-        if (!ComponentEditor) {
-            return;
-        }
+    //    if (!ComponentEditor) {
+    //        return;
+    //    }
 
-        let node = ComponentEditor.Tree.GetNodeByID(data.ID);
+    //    let node = ComponentEditor.Tree.GetNodeByID(data.ID);
 
-        if (!node) {
-            return;
-        }
+    //    if (!node) {
+    //        return;
+    //    }
 
-        node.DeleteChildren();
+    //    node.DeleteChildren();
 
-        for (let prop of data.Properties) {
-            ComponentEditor.Tree.AddNode(prop, node);
-        }
-    }
+    //    for (let prop of data.Properties) {
+    //        ComponentEditor.Tree.AddNode(prop, node);
+    //    }
+    //}
 
-    static AddComponent(data: any, storage: any[]) {
-        ComponentEditor?.Tree.AddNode(data);
-    }
+    //static AddComponent(data: any, storage: any[]) {
+    //    ComponentEditor?.Tree.AddNode(data);
+    //}
 
-    static DeleteComponent(id: any, storage: any[]) {
-        let idString: string = `c_${id}`;
-        ComponentEditor?.Tree.DeleteNode(idString);
-    }
+    //static DeleteComponent(id: any, storage: any[]) {
+    //    let idString: string = `c_${id}`;
+    //    ComponentEditor?.Tree.DeleteNode(idString);
+    //}
 
-    static AddComponentProp(data: any, storage: any[]) {
+    //static AddComponentProp(data: any, storage: any[]) {
 
-        let parentId = data.ParentID;
-        let parentNode = ComponentEditor?.Tree.GetNodeByID(parentId);
+    //    let parentId = data.ParentID;
+    //    let parentNode = ComponentEditor?.Tree.GetNodeByID(parentId);
 
-        ComponentEditor?.Tree.AddNode(data, parentNode);
-    }
+    //    ComponentEditor?.Tree.AddNode(data, parentNode);
+    //}
 
-    static DeleteComponentProp(id: any, storage: any[]) {
-        let idString: string = `p_${id}`;
-        ComponentEditor?.Tree.DeleteNode(idString);
-    }
+    //static DeleteComponentProp(id: any, storage: any[]) {
+    //    let idString: string = `p_${id}`;
+    //    ComponentEditor?.Tree.DeleteNode(idString);
+    //}
 }

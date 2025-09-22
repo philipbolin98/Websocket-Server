@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 using System.Net;
 using System.Net.WebSockets;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Threading.Channels;
 
 namespace Server {
     internal class WebServer {
@@ -26,11 +22,15 @@ namespace Server {
 
         public HttpListener Listener = new();
 
-        public Thread ListenerThread;
+        public static readonly Channel<ClientMessage> MessageChannel = Channel.CreateUnbounded<ClientMessage>();
 
         public WebServer() {
 
             AddMimeTypes();
+
+            for (int i = 0; i < Environment.ProcessorCount; i++) {
+                Task.Run(StartWorkerTask);
+            }
 
             foreach (string ip in IPAddresses) {
                 Listener.Prefixes.Add($"http://{ip}:{TestPort}/");
@@ -38,8 +38,7 @@ namespace Server {
 
             Listener.Start();
 
-            ListenerThread = new(new ThreadStart(ListenForHttpRequests));
-            ListenerThread.Start();
+            Task.Run(ListenForHttpRequests);
         }
 
         private void AddMimeTypes() {
@@ -48,6 +47,27 @@ namespace Server {
             MimeTypes.Add("js", "text/javascript");
             MimeTypes.Add("map", "application/json");
             MimeTypes.Add("ico", "image/vnd.microsoft.icon");
+        }
+
+        private async void StartWorkerTask() {
+
+            var reader = MessageChannel.Reader;
+
+            await foreach (var item in reader.ReadAllAsync()) {
+                try {
+
+                    string response = await Client.GetResponse(item.RawMessage);
+
+                    if (response == "") {
+                        continue;
+                    }
+
+                    await item.Client.SendMessage(response);
+
+                } catch (Exception ex) {
+                    Debug.WriteLine($"Worker error: {ex}");
+                }
+            }
         }
 
         private async void ListenForHttpRequests() {

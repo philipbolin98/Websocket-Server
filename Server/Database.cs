@@ -5,7 +5,7 @@ using Microsoft.Data.SqlClient;
 namespace Server {
     public class Database {
 
-        public static string ConnectionString = "Server=PHILIPPC;Database=WebsocketServer;Trusted_Connection=True;TrustServerCertificate=True";
+        public static string ConnectionString = "Server=PHILIPPC;Database=WebsocketServer2;Trusted_Connection=True;TrustServerCertificate=True";
 
         public static async Task<object?> ExecuteScalar(string Query, SqlParameter[]? Paramaters = null) {
             try {

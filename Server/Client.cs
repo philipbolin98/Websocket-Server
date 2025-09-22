@@ -1,18 +1,14 @@
 ﻿using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
 using static Server.ClientFunctionHandlers;
 
 namespace Server {
-    internal class Client {
+    public class Client {
 
         public WebSocket Socket;
 
         public string Id;
-
-        public Thread Thread;
 
         public CancellationTokenSource TokenSource = new();
 
@@ -20,8 +16,7 @@ namespace Server {
             Socket = socket;
             Id = Guid.NewGuid().ToString();
 
-            Thread = new(new ThreadStart(ListenForSocketRequests));
-            Thread.Start();
+            Task.Run(ListenForSocketRequests);
         }
 
         public async void ListenForSocketRequests() {
@@ -34,13 +29,7 @@ namespace Server {
                         continue;
                     }
 
-                    string response = await GetResponse(message);
-
-                    if (response == "") {
-                        continue;
-                    }
-
-                    await SendMessage(response);
+                    await WebServer.MessageChannel.Writer.WriteAsync(new ClientMessage(this, message));
 
                 } catch (Exception ex) {
                     Debug.Write(ex.Message);
@@ -141,6 +130,16 @@ namespace Server {
             this.FunctionName = functionName;
             this.Index = index;
             this.Result = result;
+        }
+    }
+
+    public class ClientMessage {
+        public Client Client { get; }
+        public string RawMessage { get; }
+
+        public ClientMessage(Client client, string rawMessage) {
+            Client = client;
+            RawMessage = rawMessage;
         }
     }
 }

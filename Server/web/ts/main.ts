@@ -1,4 +1,6 @@
-﻿var Socket: WebSocket;
+﻿//import.meta.glob("./components/*.ts", { eager: true });
+
+var Socket: WebSocket;
 var MainElement: HTMLElement | null = document.getElementById("main");
 var ContextMenuObject: ContextMenu | null = null;
 var ComponentEditor: Editor | null = null;

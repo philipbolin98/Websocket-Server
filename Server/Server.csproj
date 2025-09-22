@@ -9,11 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="tsconfig.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="tsconfig.json" />
+    <Content Include="web\tsconfig.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,6 +22,7 @@
 
   <ItemGroup>
     <Folder Include="web\js\" />
+    <Folder Include="web\ts\components\" />
   </ItemGroup>
 
 </Project>
