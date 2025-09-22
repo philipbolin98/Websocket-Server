@@ -1,4 +1,8 @@
-class ContextMenu {
+import { Editor } from "./editor";
+
+var ObjectEditor: Editor | null = null;
+
+export class ContextMenu {
 
     Element: HTMLElement;
 
@@ -22,24 +26,24 @@ class ContextMenu {
 
         document.body.appendChild(this.Element);
 
-        let CEOption = document.createElement("div");
-        CEOption.innerText = "Component Editor";
-        CEOption.addEventListener("click", (e) => {
-            ShowComponentEditor();
-            this.Hide();
-        });
-
         let OEOption = document.createElement("div");
         OEOption.innerText = "Object Editor";
         OEOption.addEventListener("click", (e) => {
-            ShowObjectEditor();
+            this.ShowObjectEditor();
             this.Hide();
         });
 
-        this.Element.appendChild(CEOption);
         this.Element.appendChild(OEOption);
-
         this.Visibile = true;
+    }
+
+    ShowObjectEditor() {
+
+        if (!ObjectEditor) {
+            ObjectEditor = new Editor("objecteditor", []);
+        }
+
+        ObjectEditor.Show();
     }
 
     Hide() {

@@ -1,13 +1,12 @@
 ﻿//import.meta.glob("./components/*.ts", { eager: true });
 
-var Socket: WebSocket;
-var MainElement: HTMLElement | null = document.getElementById("main");
-var ContextMenuObject: ContextMenu | null = null;
-var ComponentEditor: Editor | null = null;
-var ObjectEditor: Editor | null = null;
+import { ClientFunctionHandlers } from "./clientfunctionhandlers";
+import { Editor } from "./components/editor";
+import { ContextMenu } from "./components/contextmenu";
+import { SendWebSocketRequest, HandleWebSocketResponse } from "./utils/websocket";
 
-var MessageIndex: number = 0;
-var MessageMap: Map<number, any> = new Map();
+var Socket: WebSocket;
+var ContextMenuObject: ContextMenu | null = null;
 
 function CreateWebSocket(): void {
 
@@ -30,73 +29,14 @@ function CreateWebSocket(): void {
     });
 }
 
-function SendWebSocketRequest(functionName: string, params: any[] = [], storage: any[] = []): void {
-
-    let index = MessageIndex;
-    MessageIndex++;
-
-    let data = new SocketRequest(functionName, index, params);
-
-    let message: string = JSON.stringify(data);
-
-    MessageMap.set(index, storage);
-
-    Socket.send(message);
-}
-
-function HandleWebSocketResponse(message: string) {
-
-    let response = JSON.parse(message) as SocketResponse<string>;
-
-    let result = response.Result;
-
-    if (!result.Success) {
-        console.error(result.Message);
-        return;
-    }
-
-    let functionName: string = response.FunctionName;
-    let data = result.Data;
-
-    let index = response.Index;
-
-    let storage = MessageMap.get(index);
-    MessageMap.delete(index);
-
-    (ClientFunctionHandlers as any)[functionName](data, storage);
-}
-
-class SocketRequest {
-
-    FunctionName: string;
-    Index: number;
-    Parameters: object[];
-
-    constructor(functionName: string, index: number, params: object[] = []) {
-        this.FunctionName = functionName;
-        this.Index = index;
-        this.Parameters = params;
-    }
-}
-
-class SocketResponse<T> {
-    FunctionName: string = "";
-    Index: number = -1;
-    Result!: Result<T>;
-}
-
-class Result<T> {
-    Success: boolean = false;
-    Message: string = "";
-    Data?: T;
-}
-
 function AddEvents(): void {
 
     document.addEventListener("contextmenu", (e: MouseEvent) => {
         ShowContextMenu(e);
         return false;
     });
+
+    var MainElement: HTMLElement | null = document.getElementById("main");
 
     MainElement?.addEventListener("pointerdown", (e: PointerEvent) => {
         HideContextMenu(e);
@@ -126,20 +66,7 @@ function HideContextMenu(e: PointerEvent) {
     ContextMenuObject.Hide();
 }
 
-function ShowComponentEditor() {
-
-    if (!ComponentEditor) {
-        ComponentEditor = new Editor("componenteditor", []);
-    }
-
-    ComponentEditor.Show();
-}
-
-function ShowObjectEditor() {
-
-    if (!ObjectEditor) {
-        ObjectEditor = new Editor("objecteditor", []);
-    }
-
-    ObjectEditor.Show();
-}
+// register RPC functions
+ClientFunctionHandlers.register({
+    
+});

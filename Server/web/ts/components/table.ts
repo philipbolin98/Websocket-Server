@@ -1,4 +1,4 @@
-﻿class Table {
+﻿export class Table {
 
     Element: HTMLElement;
     HeaderRow: HTMLElement;

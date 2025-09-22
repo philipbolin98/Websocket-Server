@@ -1,4 +1,8 @@
-﻿class Editor {
+﻿import { SendWebSocketRequest } from "../utils/websocket";
+import { Tree, TreeNode } from "./tree";
+import { Table } from "./table";
+
+export class Editor {
 
     Element: HTMLElement;
     Header: HTMLElement;
@@ -78,6 +82,7 @@
             return;
         }
 
+        var MainElement: HTMLElement | null = document.getElementById("main");
         MainElement?.appendChild(this.Element);
         this.Visible = true;
     }

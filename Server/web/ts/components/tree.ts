@@ -1,4 +1,4 @@
-class Tree {
+export class Tree {
 
     Element: HTMLElement;
     RootNodes: TreeNode[] = [];
@@ -106,7 +106,7 @@ class Tree {
     }
 }
 
-class TreeNode {
+export class TreeNode {
 
     static BranchWidth: number = 20;
 

@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <Folder Include="web\js\" />
-    <Folder Include="web\ts\components\" />
   </ItemGroup>
 
 </Project>

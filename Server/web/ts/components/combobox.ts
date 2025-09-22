@@ -1,4 +1,4 @@
-class ComboBox {
+export class ComboBox {
 
     Element: HTMLElement;
     
