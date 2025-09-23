@@ -1,4 +1,5 @@
-import { Editor } from "./editor";
+import { Editor } from "../editor/editor";
+import "./contextmenu.css";
 
 var ObjectEditor: Editor | null = null;
 

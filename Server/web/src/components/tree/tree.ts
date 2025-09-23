@@ -1,3 +1,5 @@
+import "./tree.css";
+
 export class Tree {
 
     Element: HTMLElement;

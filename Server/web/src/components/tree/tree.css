@@ -1,0 +1,41 @@
+.treenodecontainer {
+    height: 20px;
+}
+
+.treenode, .treenodeitem, .treenodechildcontainer {
+    width: 100%;
+}
+
+.tree {
+    flex-direction: column;
+}
+
+.treenode {
+    flex-direction: column;
+}
+
+.treenode:focus-visible {
+    outline: none;
+}
+
+.treenodechildcontainer {
+    flex-direction: column;
+}
+
+.treenodeexpandbuttoncontainer {
+    align-items: center;
+    justify-content: center;
+}
+
+.treenodeexpandbutton {
+    width: 60%;
+    height: 60%;
+    border: 1px solid black;
+    border-radius: 5px;
+    line-height: 1;
+    font-size: 16px;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+}

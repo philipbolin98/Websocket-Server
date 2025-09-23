@@ -1,6 +1,7 @@
-﻿import { Tree, TreeNode } from "./tree";
-import { Table } from "./table";
-import { socket } from "../utils/websocket";
+﻿import { Tree, TreeNode } from "../tree/tree";
+import { Table } from "../table/table";
+import { socket } from "../../utils/websocket";
+import "./editor.css";
 
 export class Editor {
 

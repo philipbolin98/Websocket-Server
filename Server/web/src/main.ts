@@ -1,5 +1,5 @@
-﻿import { ContextMenu } from "./components/contextmenu";
-import "../css/styles.css";
+﻿import { ContextMenu } from "./components/contextmenu/contextmenu";
+import "./main.css";
 
 var ContextMenuObject: ContextMenu | null = null;
 

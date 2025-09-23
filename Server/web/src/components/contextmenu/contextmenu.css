@@ -1,0 +1,10 @@
+#contextmenu {
+    width: 200px;
+    height: 200px;
+    position: absolute;
+    border: 1px solid black;
+}
+
+#contextmenu > div {
+    width: 100px;
+}
