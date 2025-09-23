@@ -1,3 +1,5 @@
+import { ObjectEditor } from "./components/contextmenu";
+
 type Handler = (...args: any[]) => void;
 
 export class ClientFunctionHandlers {
@@ -16,3 +18,9 @@ export class ClientFunctionHandlers {
         }
     }
 }
+
+ClientFunctionHandlers.register({
+    AddComponent(data: any[]) {
+
+    }
+})

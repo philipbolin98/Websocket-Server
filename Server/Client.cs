@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using static Server.ClientFunctionHandlers;
 
 namespace Server {
@@ -42,7 +43,7 @@ namespace Server {
         public static async Task<string> GetResponse(string message) {
             try {
 
-                var data = System.Text.Json.JsonSerializer.Deserialize<SocketRequest>(message);
+                var data = JsonSerializer.Deserialize<SocketRequest>(message);
 
                 if (data == null) {
                     return "";
@@ -51,7 +52,7 @@ namespace Server {
                 var ReturnValue = await FunctionRouter.DispatchAsync(data.FunctionName, data.Parameters);
                 SocketResponse response = new(data.FunctionName, data.Index, ReturnValue);
 
-                return System.Text.Json.JsonSerializer.Serialize(response);
+                return JsonSerializer.Serialize(response);
 
             } catch (Exception ex) {
                 Debug.WriteLine(ex.Message);

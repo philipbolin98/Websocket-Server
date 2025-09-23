@@ -1,16 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Server.Components {
     internal abstract class Component {
 
+        public static JsonSerializerOptions SerializationOptions = new() {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        };
+
         public int ID { get; set; }
+        [JsonIgnore]
         public Component? Parent { get; set; } = null;
+        public int? ParentID => this.Parent?.ID;
+        [JsonIgnore]
+        public List<Component> Children { get; set; } = [];
         public string Name { get; set; }
 
         public Component(string name) {
@@ -51,41 +55,23 @@ namespace Server.Components {
 
     internal abstract class ScreenComponent : Component {
 
-        public Measurement X { get; set; }
-        public Measurement Y { get; set; }
-        public Measurement Width { get; set; }
-        public Measurement Height { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
         public bool Visibility { get; set; }
 
-        public ScreenComponent(string name) : base(name) {
-            
+        public ScreenComponent(string name, int x, int y, int width, int height, bool visibility) : base(name) {
+            this.X = x;
+            this.Y = y;
+            this.Width = width;
+            this.Height = height;
+            this.Visibility = visibility;
         }
     }
 
-    internal class Button : ScreenComponent {
-
-        public Button(string name) : base(name) {
-
-        }
-
-        static Button() {
-            ComponentFactory.Register<Button>(() => new Button("DefaultButton"));
-        }
-    }
-
-    internal class Label : ScreenComponent {
-
-        public Label(string name) : base(name) { 
-        
-        }
-
-        static Label() {
-            ComponentFactory.Register<Label>(() => new Label("DefaultLabel"));
-        }
-    }
-
-    internal class Measurement(int value, string units) {
-        public int Value = value;
-        public string Units = units;
-    }
+    //internal class Measurement(int value, string units) {
+    //    public int Value = value;
+    //    public string Units = units;
+    //}
 }

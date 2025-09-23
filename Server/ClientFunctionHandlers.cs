@@ -1,125 +1,25 @@
-﻿using System.Text.Json;
+﻿using Server.Components;
+using System.Text.Json;
 
 namespace Server {
     public static class ClientFunctionHandlers {
 
-        public static Result<object?> GetComponents(object[] parameters) {
+        public static Result<object?> AddComponent(object[] parameters) {
 
-            List<ComponentMini> components = [];
+            string? componentType = ((JsonElement)parameters[0]).GetString();
+            //int? parentId = ((JsonElement)parameters[0]).GetInt32();
 
-            foreach (Component component in Global.dComponentsByName.Values) {
-                components.Add(component.Mini());
+            if (componentType == null) {
+                return Result<object?>.Fail("Invalid component type.");
             }
 
-            return Result<object?>.Pass(components);
-        }
-
-        public static Result<object?> GetComponent(object[] parameters) {
-
-            string? idString = ((JsonElement)parameters[0]).GetString();
-
-            if (idString == null || idString.Length <= 2) {
-                return Result<object?>.Fail("Invalid component id.");
-            }
-
-            int id = int.Parse(idString.Substring(2));
-
-            if (!Global.dComponentsByID.TryGetValue(id, out Component? component)) {
-                return Result<object?>.Fail("Invalid component id.");
-            }
-
-            return Result<object?>.Pass(component.Mini(true));
-        }
-
-        public static async Task<Result<object?>> AddComponent(object[] parameters) {
-
-            var component = await Component.Create("Component");
+            var component = ComponentFactory.Create(componentType);
 
             if (component == null) {
                 return Result<object?>.Fail("Error adding new component.");
             } else {
-                return Result<object?>.Pass(component.Mini());
+                return Result<object?>.Pass(component);
             }
-        }
-
-        public static async Task<Result<object?>> DeleteComponent(object[] parameters) {
-
-            string? idString = ((JsonElement)parameters[0]).GetString();
-
-            if (idString == null || idString.Length <= 2) {
-                return Result<object?>.Fail("Invalid component id.");
-            }
-
-            int id = int.Parse(idString.Substring(2));
-
-            if (!Global.dComponentsByID.TryGetValue(id, out Component? component)) {
-                return Result<object?>.Fail("Invalid component id.");
-            }
-
-            await Component.Delete(component);
-
-            return Result<object?>.Pass(component.ID);
-        }
-
-        public static Result<object?> GetComponentProp(object[] parameters) {
-
-            string? idString = ((JsonElement)parameters[0]).GetString();
-
-            if (idString == null || idString.Length <= 2) {
-                return Result<object?>.Fail("Invalid component id.");
-            }
-
-            int id = int.Parse(idString.Substring(2));
-
-            if (!Global.dComponentPropsByID.TryGetValue(id, out ComponentProp? prop)) {
-                return Result<object?>.Fail("Invalid component id.");
-            }
-
-            return Result<object?>.Pass(prop.Mini());
-        }
-
-        public static async Task<Result<object?>> AddComponentProp(object[] parameters) {
-
-            string? idString = ((JsonElement)parameters[0]).GetString();
-
-            if (idString == null || idString.Length <= 2) {
-                return Result<object?>.Fail("Invalid component id.");
-            }
-
-            int id = int.Parse(idString.Substring(2));
-
-            var component = Global.dComponentsByID[id];
-
-            var prop = await ComponentProp.Create(component, "Prop");
-
-            if (prop == null) {
-                return Result<object?>.Fail("Error adding new component prop.");
-            } else {
-                return Result<object?>.Pass(prop.Mini());
-            }
-        }
-
-        public static async Task<Result<object?>> DeleteComponentProp(object[] parameters) {
-
-            string? idString = ((JsonElement)parameters[0]).GetString();
-
-            if (idString == null || idString.Length <= 2) {
-                return Result<object?>.Fail("Invalid component id.");
-            }
-
-            int id = int.Parse(idString.Substring(2));
-
-            if (!Global.dComponentPropsByID.TryGetValue(id, out ComponentProp? prop)) {
-                return Result<object?>.Fail("Invalid component prop id.");
-            }
-
-            if (prop.Name == "Name") {
-                return Result<object?>.Fail("Cannot delete the Name prop.");
-            }
-
-            await ComponentProp.Delete(prop, false);
-
-            return Result<object?>.Pass(prop.ID);
         }
 
         public class Result<T> {

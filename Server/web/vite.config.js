@@ -8,6 +8,6 @@ export default defineConfig({
             fileName: () => "bundle.js",
             formats: ["iife"]
         },
-        minify: true
+        minify: false
     }
 });

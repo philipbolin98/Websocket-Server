@@ -153,9 +153,9 @@ export class Editor {
             let node = this.Tree.SelectedNode;
 
             if (!node) {
-                socket.SendWebSocketRequest("AddComponent");
+                socket.SendWebSocketRequest("AddComponent", ["Button", -1]);
             } else {
-                socket.SendWebSocketRequest("AddComponent", [node.ID]);
+                socket.SendWebSocketRequest("AddComponent", ["Button", node.ID]);
             }
         });
 

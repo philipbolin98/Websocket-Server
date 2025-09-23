@@ -27,6 +27,10 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="web\dist\" />
+  </ItemGroup>
+
   <Target Name="ViteBuild" BeforeTargets="Build">
     <Exec Command="npm run build" WorkingDirectory="$(ProjectDir)web" />
   </Target>

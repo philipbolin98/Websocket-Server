@@ -1,7 +1,7 @@
 import { Editor } from "../editor/editor";
 import "./contextmenu.css";
 
-var ObjectEditor: Editor | null = null;
+export var ObjectEditor: Editor | null = null;
 
 export class ContextMenu {
 
