@@ -1,10 +1,11 @@
 ﻿using Server.Components;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Server {
     public static class ClientFunctionHandlers {
 
-        public static Result<object?> AddComponent(object[] parameters) {
+        public static async Task<Result<object?>> AddComponent(object[] parameters) {
 
             string? componentType = ((JsonElement)parameters[0]).GetString();
             //int? parentId = ((JsonElement)parameters[0]).GetInt32();
@@ -15,11 +16,9 @@ namespace Server {
 
             var component = ComponentFactory.Create(componentType);
 
-            if (component == null) {
-                return Result<object?>.Fail("Error adding new component.");
-            } else {
-                return Result<object?>.Pass(component);
-            }
+            await component.AddToDatabaseAsync();
+
+            return Result<object?>.Pass(component);
         }
 
         public class Result<T> {

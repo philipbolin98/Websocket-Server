@@ -1,4 +1,4 @@
-import { ObjectEditor } from "./components/contextmenu";
+import { ObjectEditor } from "./components/contextmenu/contextmenu";
 
 type Handler = (...args: any[]) => void;
 

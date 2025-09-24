@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using Microsoft.Data.SqlClient;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Server.Components {
@@ -9,6 +10,7 @@ namespace Server.Components {
             WriteIndented = true
         };
 
+        public Guid PublicID { get; set; }
         public int ID { get; set; }
         [JsonIgnore]
         public Component? Parent { get; set; } = null;
@@ -19,6 +21,32 @@ namespace Server.Components {
 
         public Component(string name) {
             this.Name = name;
+            this.PublicID = Guid.NewGuid();
+        }
+
+        public abstract Task AddToDatabaseAsync();
+
+        protected async Task<int> AddToDatabaseCoreAsync() {
+
+            string query = """
+                INSERT INTO Components(PublicComponentID, ParentID, Name)
+                OUTPUT INSERTED.ComponentID
+                VALUES(@PublicComponentID, @ParentID, @Name)
+                """;
+
+            SqlParameter[] parameters = [
+                new SqlParameter("@PublicComponentID", this.PublicID),
+                new SqlParameter("@ParentID", this.ParentID),
+                new SqlParameter("@Name", this.Name)
+            ];
+
+            int? componentID = (int?)await Database.ExecuteScalarAsync(query, parameters);
+
+            if (!componentID.HasValue) {
+                throw new Exception("Error adding component to the database.");
+            }
+
+            return componentID.Value;
         }
     }
 
@@ -52,26 +80,4 @@ namespace Server.Components {
             throw new InvalidOperationException($"No factory registered for {type}");
         }
     }
-
-    internal abstract class ScreenComponent : Component {
-
-        public int X { get; set; }
-        public int Y { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
-        public bool Visibility { get; set; }
-
-        public ScreenComponent(string name, int x, int y, int width, int height, bool visibility) : base(name) {
-            this.X = x;
-            this.Y = y;
-            this.Width = width;
-            this.Height = height;
-            this.Visibility = visibility;
-        }
-    }
-
-    //internal class Measurement(int value, string units) {
-    //    public int Value = value;
-    //    public string Units = units;
-    //}
 }

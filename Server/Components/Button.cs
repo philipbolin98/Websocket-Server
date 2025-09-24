@@ -1,4 +1,6 @@
-﻿namespace Server.Components {
+﻿using Microsoft.Data.SqlClient;
+
+namespace Server.Components {
     internal class Button : ScreenComponent {
 
         string Caption { get; set; }
@@ -9,13 +11,26 @@
             this.OnClick = "";
         }
 
-        //public Button(string name, string caption, string onClick, int x, int y, int width, int height, bool visibility) : base(name, x, y, width, height, visibility) {
-        //    this.Caption = caption;
-        //    this.OnClick = onClick;
-        //}
-
         static Button() {
             ComponentFactory.Register<Button>(() => new Button());
+        }
+
+        public override async Task AddToDatabaseAsync() {
+
+            int screenComponentID = await base.AddToDatabaseCoreAsync();
+
+            string query = """
+                INSERT INTO Buttons(ScreenComponentID, Caption, OnClick)
+                VALUES(@ScreenComponentID, @Caption, @OnClick)
+                """;
+
+            SqlParameter[] parameters = [
+                new SqlParameter("@ScreenComponentID", screenComponentID),
+                new SqlParameter("@Caption", this.Caption),
+                new SqlParameter("@OnClick", this.OnClick)
+            ];
+
+            await Database.ExecuteScalarAsync(query, parameters);
         }
     }
 }

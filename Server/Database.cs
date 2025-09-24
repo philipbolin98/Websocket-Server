@@ -7,14 +7,27 @@ namespace Server {
 
         public static string ConnectionString = "Server=PHILIPPC;Database=WebsocketServer2;Trusted_Connection=True;TrustServerCertificate=True";
 
-        public static async Task<object?> ExecuteScalar(string Query, SqlParameter[]? Paramaters = null) {
+        public static SqlParameter ToDbParam(SqlParameter parameter) {
+            if (parameter.Value == null) {
+                parameter.Value = DBNull.Value;
+            }
+            return parameter;
+        }
+
+        /// <summary>
+        /// Returns the first column of the first row in the result set
+        /// </summary>
+        /// <param name="Query"></param>
+        /// <param name="Paramaters"></param>
+        /// <returns></returns>
+        public static async Task<object?> ExecuteScalarAsync(string Query, SqlParameter[]? Paramaters = null) {
             try {
 
                 using SqlConnection connection = new(ConnectionString);
                 using SqlCommand command = new(Query, connection);
 
                 if (Paramaters != null) {
-                    command.Parameters.AddRange(Paramaters);
+                    command.Parameters.AddRange(Paramaters.Select(ToDbParam).ToArray());
                 }
 
                 connection.Open();
@@ -28,14 +41,20 @@ namespace Server {
             }
         }
 
-        public static async Task<int> ExecuteNonQuery(string Query, SqlParameter[]? Paramaters = null) {
+        /// <summary>
+        /// Returns the number of rows affected
+        /// </summary>
+        /// <param name="Query"></param>
+        /// <param name="Paramaters"></param>
+        /// <returns></returns>
+        public static async Task<int> ExecuteNonQueryAsync(string Query, SqlParameter[]? Paramaters = null) {
             try {
 
                 using SqlConnection connection = new(ConnectionString);
                 using SqlCommand command = new(Query, connection);
 
                 if (Paramaters != null) {
-                    command.Parameters.AddRange(Paramaters);
+                    command.Parameters.AddRange(Paramaters.Select(ToDbParam).ToArray());
                 }
 
                 connection.Open();
@@ -56,7 +75,7 @@ namespace Server {
                 using SqlCommand command = new(Query, connection);
 
                 if (Paramaters != null) {
-                    command.Parameters.AddRange(Paramaters);
+                    command.Parameters.AddRange(Paramaters.Select(ToDbParam).ToArray());
                 }
 
                 connection.Open();
@@ -69,23 +88,5 @@ namespace Server {
                 Debug.Write(ex.Message);
             }
         }
-        
-        //public static async Task<bool> ValidateLogin(string username, string password) {
-
-        //    string loginQuery = "SELECT COUNT(*) FROM Users WHERE Username = @Username AND Password = @Password";
-
-        //    SqlParameter[] parameters = [
-        //        new SqlParameter("@Username", username),
-        //        new SqlParameter("@Password", password)
-        //    ];
-
-        //    object? result = await ExecuteScalar(loginQuery, parameters);
-
-        //    if (result == null) {
-        //        return false;
-        //    }
-
-        //    return (int)result == 1;
-        //}
     }
 }
