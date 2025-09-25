@@ -22,34 +22,30 @@ namespace Server.Components {
             this.Visibility = visibility;
         }
 
-        public override abstract Task AddToDatabaseAsync();
+        public override abstract Task<int> AddToDatabaseAsync();
 
-        protected new async Task<int> AddToDatabaseCoreAsync() {
+        protected new async Task<int> AddToDatabaseCoreAsync(string subInsert, List<SqlParameter> parameters) {
+            
+            string query = $"""
+                DECLARE @ScreenComponentID int;
 
-            int componentID = await base.AddToDatabaseCoreAsync();
-
-            string query = """
                 INSERT INTO ScreenComponents(ComponentID, X, Y, Width, Height, Visibility)
-                OUTPUT INSERTED.ScreenComponentID
                 VALUES(@ComponentID, @X, @Y, @Width, @Height, @Visibility)
+                SET @ScreenComponentID = SCOPE_IDENTITY();
+
+                {subInsert}
                 """;
 
-            SqlParameter[] parameters = [
-                new SqlParameter("@ComponentID", componentID),
+            parameters.AddRange([
                 new SqlParameter("@X", this.X),
                 new SqlParameter("@Y", this.Y),
                 new SqlParameter("@Width", this.Width),
                 new SqlParameter("@Height", this.Height),
                 new SqlParameter("@Visibility", this.Visibility)
-            ];
+            ]);
 
-            int? screenComponentID = (int?)await Database.ExecuteScalarAsync(query, parameters);
-
-            if (!screenComponentID.HasValue) {
-                throw new Exception("Error adding component to the database.");
-            }
-
-            return screenComponentID.Value;
+            int componentID = await base.AddToDatabaseCoreAsync(query, parameters);
+            return componentID;
         }
     }
 }

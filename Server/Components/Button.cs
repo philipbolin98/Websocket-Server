@@ -15,22 +15,20 @@ namespace Server.Components {
             ComponentFactory.Register<Button>(() => new Button());
         }
 
-        public override async Task AddToDatabaseAsync() {
-
-            int screenComponentID = await base.AddToDatabaseCoreAsync();
+        public override async Task<int> AddToDatabaseAsync() {
 
             string query = """
                 INSERT INTO Buttons(ScreenComponentID, Caption, OnClick)
                 VALUES(@ScreenComponentID, @Caption, @OnClick)
                 """;
 
-            SqlParameter[] parameters = [
-                new SqlParameter("@ScreenComponentID", screenComponentID),
+            List<SqlParameter> parameters = [
                 new SqlParameter("@Caption", this.Caption),
                 new SqlParameter("@OnClick", this.OnClick)
             ];
 
-            await Database.ExecuteScalarAsync(query, parameters);
+            int componentID = await base.AddToDatabaseCoreAsync(query, parameters);
+            return componentID;
         }
     }
 }

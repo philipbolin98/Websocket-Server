@@ -24,22 +24,28 @@ namespace Server.Components {
             this.PublicID = Guid.NewGuid();
         }
 
-        public abstract Task AddToDatabaseAsync();
+        public abstract Task<int> AddToDatabaseAsync();
 
-        protected async Task<int> AddToDatabaseCoreAsync() {
+        protected async Task<int> AddToDatabaseCoreAsync(string subInsert, List<SqlParameter> parameters) {
 
-            string query = """
+            string query = $"""
+                DECLARE @ComponentID int;
+
                 INSERT INTO Components(PublicComponentID, ParentID, Name)
-                OUTPUT INSERTED.ComponentID
                 VALUES(@PublicComponentID, @ParentID, @Name)
+                SET @ComponentID = SCOPE_IDENTITY();
+
+                {subInsert}
+
+                SELECT @ComponentID;
                 """;
 
-            SqlParameter[] parameters = [
+            parameters.AddRange([
                 new SqlParameter("@PublicComponentID", this.PublicID),
                 new SqlParameter("@ParentID", this.ParentID),
                 new SqlParameter("@Name", this.Name)
-            ];
-
+            ]);
+            
             int? componentID = (int?)await Database.ExecuteScalarAsync(query, parameters);
 
             if (!componentID.HasValue) {

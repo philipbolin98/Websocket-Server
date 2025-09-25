@@ -7,36 +7,51 @@ namespace Server {
 
         public static string ConnectionString = "Server=PHILIPPC;Database=WebsocketServer2;Trusted_Connection=True;TrustServerCertificate=True";
 
-        public static SqlParameter ToDbParam(SqlParameter parameter) {
-            if (parameter.Value == null) {
-                parameter.Value = DBNull.Value;
-            }
+        public static SqlParameter ToDBParam(SqlParameter parameter) {
+            parameter.Value ??= DBNull.Value;
             return parameter;
+        }
+
+        public static void AddParameters(SqlCommand command, List<SqlParameter> parameters) {
+            command.Parameters.AddRange(parameters.Select(ToDBParam).ToArray());
         }
 
         /// <summary>
         /// Returns the first column of the first row in the result set
         /// </summary>
-        /// <param name="Query"></param>
+        /// <param name="query"></param>
         /// <param name="Paramaters"></param>
         /// <returns></returns>
-        public static async Task<object?> ExecuteScalarAsync(string Query, SqlParameter[]? Paramaters = null) {
+        public static async Task<object?> ExecuteScalarAsync(string query, List<SqlParameter>? parameters = null) {
+            
+            using SqlConnection connection = new(ConnectionString);
+            await connection.OpenAsync();
+
+            using SqlTransaction transaction = (SqlTransaction)await connection.BeginTransactionAsync();
+            using SqlCommand command = new(query, connection, transaction);
+                
+            if (parameters != null) {
+                AddParameters(command, parameters);
+            }
+
             try {
-
-                using SqlConnection connection = new(ConnectionString);
-                using SqlCommand command = new(Query, connection);
-
-                if (Paramaters != null) {
-                    command.Parameters.AddRange(Paramaters.Select(ToDbParam).ToArray());
-                }
-
-                connection.Open();
                 
                 object? result = await command.ExecuteScalarAsync();
+
+                await transaction.CommitAsync();
+
                 return result;
 
-            } catch (Exception ex) {
-                Debug.Write(ex.Message);
+            } catch (Exception ex1) {
+
+                Debug.Write(ex1.Message);
+
+                try {
+                    await transaction.RollbackAsync();
+                } catch (Exception ex2) {
+                    Debug.Write(ex2.Message);
+                }
+
                 return null;
             }
         }
@@ -44,48 +59,72 @@ namespace Server {
         /// <summary>
         /// Returns the number of rows affected
         /// </summary>
-        /// <param name="Query"></param>
+        /// <param name="query"></param>
         /// <param name="Paramaters"></param>
         /// <returns></returns>
-        public static async Task<int> ExecuteNonQueryAsync(string Query, SqlParameter[]? Paramaters = null) {
+        public static async Task<int> ExecuteNonQueryAsync(string query, List<SqlParameter>? parameters = null) {
+
+            using SqlConnection connection = new(ConnectionString);
+            await connection.OpenAsync();
+
+            using SqlTransaction transaction = (SqlTransaction)await connection.BeginTransactionAsync();
+            using SqlCommand command = new(query, connection, transaction);
+
+            if (parameters != null) {
+                AddParameters(command, parameters);
+            }
+
             try {
 
-                using SqlConnection connection = new(ConnectionString);
-                using SqlCommand command = new(Query, connection);
-
-                if (Paramaters != null) {
-                    command.Parameters.AddRange(Paramaters.Select(ToDbParam).ToArray());
-                }
-
-                connection.Open();
-
                 int result = await command.ExecuteNonQueryAsync();
+
+                await transaction.CommitAsync();
+
                 return result;
 
-            } catch (Exception ex) {
-                Debug.Write(ex.Message);
+            } catch (Exception ex1) {
+
+                Debug.Write(ex1.Message);
+
+                try {
+                    await transaction.RollbackAsync();
+                } catch (Exception ex2) {
+                    Debug.Write(ex2.Message);
+                }
+
                 return -1;
             }
         }
 
-        public static void FillDataSet(DataSet ds, string Query, SqlParameter[]? Paramaters = null) {
+        public static async void FillDataSet(DataSet ds, string query, List<SqlParameter>? parameters = null) {
+            
+            using SqlConnection connection = new(ConnectionString);
+            await connection.OpenAsync();
+
+            using SqlTransaction transaction = (SqlTransaction)await connection.BeginTransactionAsync();
+            using SqlCommand command = new(query, connection, transaction);
+
+            if (parameters != null) {
+                AddParameters(command, parameters);
+            }
+
             try {
-
-                using SqlConnection connection = new(ConnectionString);
-                using SqlCommand command = new(Query, connection);
-
-                if (Paramaters != null) {
-                    command.Parameters.AddRange(Paramaters.Select(ToDbParam).ToArray());
-                }
-
-                connection.Open();
 
                 using SqlDataAdapter adapter = new(command);
 
                 adapter.Fill(ds);
 
-            } catch (Exception ex) {
-                Debug.Write(ex.Message);
+                await transaction.CommitAsync();
+
+            } catch (Exception ex1) {
+
+                Debug.Write(ex1.Message);
+
+                try {
+                    await transaction.RollbackAsync();
+                } catch (Exception ex2) {
+                    Debug.Write(ex2.Message);
+                }
             }
         }
     }

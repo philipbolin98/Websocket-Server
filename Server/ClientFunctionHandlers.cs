@@ -16,8 +16,9 @@ namespace Server {
 
             var component = ComponentFactory.Create(componentType);
 
-            await component.AddToDatabaseAsync();
-
+            int componentID = await component.AddToDatabaseAsync();
+            component.ID = componentID;
+            
             return Result<object?>.Pass(component);
         }
 
